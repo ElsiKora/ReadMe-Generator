@@ -3,21 +3,21 @@
 	"version": "1.0.0",
 	"description": "CLI utility for generating README.md files",
 	"keywords": [
-		"CLI",
-		"README",
-		"Anthropic",
-		"TypeScript",
-		"OpenAI",
-		"Generator"
+		"cli",
+		"readme",
+		"anthropic",
+		"typescript",
+		"openai",
+		"generator"
 	],
 	"license": "MIT",
 	"author": "ElsiKora",
 	"type": "module",
 	"bin": {
-		"@elsikora/readme-generator": "./dist/index.js"
+		"@elsikora/readme-generator": "./bin/index.js"
 	},
 	"files": [
-		"dist"
+		"bin"
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
@@ -47,8 +47,7 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.12",
-		"@elsikora/eslint-config": "^3.2.3",
-		"@elsikora/eslint-plugin-nestjs-typed": "^2.0.4",
+		"@elsikora/eslint-config": "^3.2.4",
 		"@eslint-react/eslint-plugin": "^1.26.1",
 		"@eslint/compat": "^1.2.6",
 		"@eslint/js": "^9.19.0",
@@ -61,7 +60,7 @@
 		"@types/node": "^22.13.0",
 		"@types/yargs": "^17.0.33",
 		"@typescript-eslint/eslint-plugin": "^8.22.0",
-		"@typescript-eslint/parser": "^8.22.0",
+		"@typescript-eslint/parser": "^8.23.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-check-file": "^3.0.0",
 		"eslint-plugin-jsonc": "^2.19.1",
