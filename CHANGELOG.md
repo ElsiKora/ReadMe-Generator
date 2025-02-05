@@ -1,5 +1,11 @@
 # @elsikora/readme-generator
 
+## 1.0.3
+
+### Patch Changes
+
+- fa69084: feat: add API key option for AI provider in README generation
+
 ## 1.0.2
 
 ### Patch Changes
