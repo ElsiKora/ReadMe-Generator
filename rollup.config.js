@@ -6,7 +6,7 @@ export default {
 	output: {
 		banner: "#!/usr/bin/env node",
 		exports: "auto",
-		file: "bin/cli.js",
+		file: "bin/index.js",
 		format: "esm",
 		sourcemap: true,
 	},

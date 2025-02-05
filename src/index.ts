@@ -4,7 +4,7 @@ import { createGenerateReadmeCommand } from "./commands/generate-readme/command"
 
 const program: Command = new Command();
 
-program.name("@elsikora/readme-generator").description("CLI tool for generating repository README files").version("1.0.0");
+program.name("@elsikora/readme-generator").description("CLI tool for generating repository README files").version("1.0.2");
 
 createGenerateReadmeCommand(program);
 
