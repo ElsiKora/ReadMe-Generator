@@ -78,6 +78,37 @@ export async function promptForModel(provider: EAIProvider): Promise<string> {
 	return model;
 }
 
+export async function promptForApiKey(provider: EAIProvider): Promise<string> {
+	const providerName = provider === EAIProvider.ANTHROPIC ? "Anthropic" : "OpenAI";
+
+	const apiKey: string | symbol = await text({
+		message: `Enter ${providerName} API key:`,
+		validate: (value: string): string | undefined => {
+			if (!value || value.trim().length === 0) {
+				return "API key cannot be empty";
+			}
+
+			if (provider === EAIProvider.ANTHROPIC && !value.startsWith("sk-")) {
+				return "Anthropic API key should start with 'sk-'";
+			}
+
+			if (provider === EAIProvider.OPENAI && !value.startsWith("sk-")) {
+				return "OpenAI API key should start with 'sk-'";
+			}
+		},
+	});
+
+	if (isCancel(apiKey)) {
+		cancel("Operation cancelled");
+		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		process.exit(0);
+	}
+
+	console.log(chalk.green(`API key provided for ${providerName}`));
+
+	return apiKey;
+}
+
 export async function promptForOutputFile(): Promise<string> {
 	const outputFile: string | symbol = await text({
 		defaultValue: DEFAULT_OUTPUT_FILE,

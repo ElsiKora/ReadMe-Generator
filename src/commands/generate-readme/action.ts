@@ -1,9 +1,9 @@
-import type { EAIProvider } from "../../services/ai/provider.enum";
-import type { IGenerateReadmeOutput } from "../../services/ai/types";
-import type { IRepoInfo } from "../../types";
-import type { IFileContent } from "../../utils/fs/types";
+import {EAIProvider} from "../../services/ai/provider.enum";
+import type {IGenerateReadmeOutput} from "../../services/ai/types";
+import type {IRepoInfo} from "../../types";
+import type {IFileContent} from "../../utils/fs/types";
 
-import type { IGenerateReadmeArguments } from "./types";
+import type {IGenerateReadmeArguments} from "./types";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -11,17 +11,22 @@ import path from "node:path";
 import chalk from "chalk";
 import dotenv from "dotenv";
 
-import { AIService } from "../../services/ai/service";
-import { GithubService } from "../../services/github/service";
-import { LocalService } from "../../services/local/service";
-import { promptForLanguage, promptForModel, promptForOutputFile, promptForProvider, promptForRepo, promptForScanDepth } from "../../utils/cli/prompts";
-import { parseChangelogTasks } from "../../utils/fs/changelog";
-import { ProjectScanner } from "../../utils/fs/scanner";
-dotenv.config();
+import {AIService} from "../../services/ai/service";
+import {GithubService} from "../../services/github/service";
+import {LocalService} from "../../services/local/service";
+import {
+	promptForApiKey,
+	promptForLanguage,
+	promptForModel,
+	promptForOutputFile,
+	promptForProvider,
+	promptForRepo,
+	promptForScanDepth
+} from "../../utils/cli/prompts";
+import {parseChangelogTasks} from "../../utils/fs/changelog";
+import {ProjectScanner} from "../../utils/fs/scanner";
 
-if (!process.env.ANTHROPIC_API_KEY) {
-	throw new Error("Error: ANTHROPIC_API_KEY not found");
-}
+dotenv.config();
 
 export async function generateReadmeAction(argv: IGenerateReadmeArguments): Promise<void> {
 	// eslint-disable-next-line @elsikora-typescript/no-non-null-assertion
@@ -32,6 +37,18 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 	const scanDepth: number = argv.scanDepth ?? (await promptForScanDepth());
 	const provider: EAIProvider = (argv.provider as EAIProvider) || (await promptForProvider());
 	const model: string = argv.model ?? (await promptForModel(provider));
+	let key: string;
+
+	switch (provider) {
+		case EAIProvider.ANTHROPIC: {
+			key = argv.key ?? process.env.ANTHROPIC_API_KEY ?? (await promptForApiKey(provider));
+			break;
+		}
+		case EAIProvider.OPENAI: {
+			key = argv.key ?? process.env.OPENAI_API_KEY ?? (await promptForApiKey(provider));
+			break;
+		}
+	}
 
 	const isRemoteRepo: boolean = userRepoChoice.includes("/") && !fs.existsSync(userRepoChoice);
 	let repoInfo: IRepoInfo;
@@ -56,7 +73,7 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 	const changelogPath: string = path.join(isRemoteRepo ? "." : path.resolve(userRepoChoice), "CHANGELOG.md");
 	const doneFromChangelog: Array<string> = parseChangelogTasks(changelogPath);
 
-	const anthropicService: AIService = new AIService(process.env.ANTHROPIC_API_KEY ?? "", process.env.OPENAI_API_KEY || "");
+	const anthropicService: AIService = new AIService(key);
 
 	const generatedData: IGenerateReadmeOutput = await anthropicService.generateReadme({
 		doneFromChangelog,

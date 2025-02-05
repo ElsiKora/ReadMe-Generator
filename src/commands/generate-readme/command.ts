@@ -22,6 +22,7 @@ For more information, visit https://github.com/yourusername/readme-generator`,
 		.option("-d, --scanDepth <depth>", "Folder scan depth (1-3)", Number)
 		.option("-p, --provider <provider>", "AI provider to use (openai, anthropic)")
 		.option("-m, --model <model>", "AI model to use")
+		.option("-k, --key <key>", "API key for AI provider")
 		.action(async (repo: string, options: IGenerateReadmeArguments) => {
 			const argumentsCommand: IGenerateReadmeArguments = {
 				...options,

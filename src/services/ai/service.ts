@@ -20,11 +20,11 @@ export class AIService {
 
 	private readonly OPENAI: OpenAI;
 
-	constructor(anthropicKey: string, openaiKey: string) {
-		this.ANTHROPIC = new Anthropic({ apiKey: anthropicKey });
+	constructor(apiKey: string) {
+		this.ANTHROPIC = new Anthropic({ apiKey });
 
 		this.OPENAI = new OpenAI({
-			apiKey: openaiKey,
+			apiKey,
 		});
 	}
 

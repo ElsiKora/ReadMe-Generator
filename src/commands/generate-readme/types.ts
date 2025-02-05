@@ -4,4 +4,5 @@ export interface IGenerateReadmeArguments {
 	provider?: string;
 	repo?: string;
 	scanDepth?: number;
+	key?: string;
 }
