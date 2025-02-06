@@ -1,5 +1,11 @@
 # @elsikora/readme-generator
 
+## 1.0.4
+
+### Patch Changes
+
+- ecc3c11: feat(readme-generator): enhance README generation and improve UX
+
 ## 1.0.3
 
 ### Patch Changes
