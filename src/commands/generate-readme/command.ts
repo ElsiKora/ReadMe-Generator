@@ -8,14 +8,36 @@ export function createGenerateReadmeCommand(program: Command): Command {
 	return program
 		.command("generate [repo]")
 		.description(
-			`Generate README for a repository
+			`Generate an intelligent README for your repository
+
+This command analyzes your repository's structure, code, and contents to automatically
+generate a comprehensive README.md file. It supports multiple languages, customizable 
+scanning depth, and different AI providers for content generation.
+
+Key Features:
+• Intelligent project analysis and documentation generation
+• Multi-language support for international projects
+• Configurable scanning depth for large repositories
+• Multiple AI provider options for content generation
+• Interactive mode for customized README creation
 
 Examples:
-  $ generate .                    Generate README with interactive prompts
-  $ generate -r owner/repo        Generate README for GitHub repository  
-  $ generate . -l ru -d 2         Generate Russian README with level 2 scanning
+  $ generate .                      Generate README interactively for current directory
+  $ generate -r owner/repo          Generate README for a GitHub repository
+  $ generate . -l ru -d 2          Generate Russian README with medium scan depth
+  $ generate . -p anthropic -m claude-3  Use specific AI model for generation
+  $ generate . -k <your-api-key>   Use custom API key for generation
 
-For more information, visit https://github.com/yourusername/readme-generator`,
+Options:
+  --repo, -r       Local repository path or GitHub repository in owner/repo format
+  --lang, -l       Documentation language code (en, es, fr, de, ru, zh, ja, etc.)
+  --scanDepth, -d  Directory scanning depth (1=shallow, 2=medium, 3=deep)
+  --provider, -p   AI provider to use for content generation (openai, anthropic)
+  --model, -m      Specific AI model to use (e.g., gpt-4, claude-3)
+  --key, -k        Custom API key for the selected AI provider
+
+Note: Interactive mode will be enabled automatically when required options are missing.
+For more details and documentation, visit: https://github.com/yourusername/readme-generator`,
 		)
 		.option("-r, --repo <path>", "Local repo path or GitHub repo (owner/repo)", ".")
 		.option("-l, --lang <language>", "Documentation language (en, es, fr, de, ru, etc.)")

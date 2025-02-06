@@ -180,7 +180,7 @@ export class AIService {
 		const prettyFeatures: string = parsedData.features.map((f: string) => `- ✨ **${f}**`).join("\n");
 
 		const readme: string = `<p align="center">
-  <img src="${parsedData.logoUrl}" width="300" alt="project-logo">
+  <img src="${parsedData.logoUrl}" width="500" alt="project-logo">
 </p>
 
 <h1 align="center">${parsedData.title}</h1>
@@ -282,7 +282,9 @@ The JSON must follow this structure:
   "roadmap": string,           // Future development possibilities
   "faq": string,               // Anticipated user questions and answers
   "license": string            // License information from LICENSE file
-}`.trim();
+}
+
+ONLY JSON OBJECT IN RESPONSE WITH NO ANY ADDITIONAL TEXT`.trim();
 	}
 
 	private cleanCodeBlock(text: string): string {

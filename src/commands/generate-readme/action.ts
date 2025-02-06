@@ -1,9 +1,8 @@
-import {EAIProvider} from "../../services/ai/provider.enum";
-import type {IGenerateReadmeOutput} from "../../services/ai/types";
-import type {IRepoInfo} from "../../types";
-import type {IFileContent} from "../../utils/fs/types";
+import type { IGenerateReadmeOutput } from "../../services/ai/types";
+import type { IRepoInfo } from "../../types";
+import type { IFileContent } from "../../utils/fs/types";
 
-import type {IGenerateReadmeArguments} from "./types";
+import type { IGenerateReadmeArguments } from "./types";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -11,20 +10,13 @@ import path from "node:path";
 import chalk from "chalk";
 import dotenv from "dotenv";
 
-import {AIService} from "../../services/ai/service";
-import {GithubService} from "../../services/github/service";
-import {LocalService} from "../../services/local/service";
-import {
-	promptForApiKey,
-	promptForLanguage,
-	promptForModel,
-	promptForOutputFile,
-	promptForProvider,
-	promptForRepo,
-	promptForScanDepth
-} from "../../utils/cli/prompts";
-import {parseChangelogTasks} from "../../utils/fs/changelog";
-import {ProjectScanner} from "../../utils/fs/scanner";
+import { EAIProvider } from "../../services/ai/provider.enum";
+import { AIService } from "../../services/ai/service";
+import { GithubService } from "../../services/github/service";
+import { LocalService } from "../../services/local/service";
+import { promptForApiKey, promptForLanguage, promptForModel, promptForOutputFile, promptForProvider, promptForRepo, promptForScanDepth } from "../../utils/cli/prompts";
+import { parseChangelogTasks } from "../../utils/fs/changelog";
+import { ProjectScanner } from "../../utils/fs/scanner";
 
 dotenv.config();
 
@@ -42,10 +34,13 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 	switch (provider) {
 		case EAIProvider.ANTHROPIC: {
 			key = argv.key ?? process.env.ANTHROPIC_API_KEY ?? (await promptForApiKey(provider));
+
 			break;
 		}
+
 		case EAIProvider.OPENAI: {
 			key = argv.key ?? process.env.OPENAI_API_KEY ?? (await promptForApiKey(provider));
+
 			break;
 		}
 	}
