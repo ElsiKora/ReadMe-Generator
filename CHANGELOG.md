@@ -1,5 +1,11 @@
 # @elsikora/readme-generator
 
+## 1.0.5
+
+### Patch Changes
+
+- 9e38bb3: New models added
+
 ## 1.0.4
 
 ### Patch Changes
