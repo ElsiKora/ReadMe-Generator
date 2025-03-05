@@ -284,7 +284,7 @@ The JSON must follow this structure:
   "license": string            // License information from LICENSE file
 }
 
-ONLY JSON OBJECT IN RESPONSE WITH NO ANY ADDITIONAL TEXT`.trim();
+ONLY JSON OBJECT IN RESPONSE WITH NO ANY ADDITIONAL TEXT. NO MARKDOWN, NO ANY OTHER COMMENTS.`.trim();
 	}
 
 	private cleanCodeBlock(text: string): string {
