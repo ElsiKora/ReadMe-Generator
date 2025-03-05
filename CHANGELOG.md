@@ -1,5 +1,11 @@
 # @elsikora/readme-generator
 
+## 1.0.6
+
+### Patch Changes
+
+- cdafc87: Fixed AI prompt
+
 ## 1.0.5
 
 ### Patch Changes
