@@ -38,7 +38,7 @@ export class LocalService {
 
 		for (const file of files) {
 			const extension: string = path.extname(file).replace(".", "");
-			fileCounts[extension] = (fileCounts[extension] || 0) + 1;
+			fileCounts[extension] = (fileCounts[extension] ?? 0) + 1;
 		}
 
 		const totalFiles: number = files.length;
@@ -47,13 +47,14 @@ export class LocalService {
 
 		const stats: string = Object.entries(fileCounts)
 			.map(([extension, count]: [string, number]) => {
+				// eslint-disable-next-line @elsikora/typescript/no-magic-numbers
 				const percent: string = ((count / totalFiles) * 100).toFixed(1);
 
 				return `${extension.toUpperCase()}: ${percent}%`;
 			})
 			.join(", ");
 
-		return `${stats} (total: ${totalFiles} files)`;
+		return `${stats} (total: ${String(totalFiles)} files)`;
 	}
 
 	private parsePackageJson(packageJsonPath: string): { author: any; depsCount: number; description: any; devDepsCount: number; version: string } {
@@ -74,18 +75,19 @@ export class LocalService {
 		if (!fs.existsSync(packageJsonPath)) return defaultInfo;
 
 		try {
+			// eslint-disable-next-line @elsikora/typescript/no-unsafe-assignment
 			const packageData: any = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
 			return {
-				// eslint-disable-next-line @elsikora-typescript/no-unsafe-assignment,@elsikora-typescript/no-unsafe-member-access
-				author: packageData.author || "",
-				// eslint-disable-next-line @elsikora-typescript/no-unsafe-member-access,@elsikora-typescript/no-unsafe-argument
+				// eslint-disable-next-line @elsikora/typescript/no-unsafe-assignment,@elsikora/typescript/no-unsafe-member-access
+				author: packageData.author ?? "",
+				// eslint-disable-next-line @elsikora/typescript/no-unsafe-member-access,@elsikora/typescript/no-unsafe-argument
 				depsCount: packageData.dependencies ? Object.keys(packageData.dependencies).length : 0,
-				// eslint-disable-next-line @elsikora-typescript/no-unsafe-assignment,@elsikora-typescript/no-unsafe-member-access
-				description: packageData.description || "",
-				// eslint-disable-next-line @elsikora-typescript/no-unsafe-member-access,@elsikora-typescript/no-unsafe-argument
+				// eslint-disable-next-line @elsikora/typescript/no-unsafe-assignment,@elsikora/typescript/no-unsafe-member-access
+				description: packageData.description ?? "",
+				// eslint-disable-next-line @elsikora/typescript/no-unsafe-member-access,@elsikora/typescript/no-unsafe-argument
 				devDepsCount: packageData.devDependencies ? Object.keys(packageData.devDependencies).length : 0,
-				// eslint-disable-next-line @elsikora-typescript/no-unsafe-member-access,@elsikora-typescript/restrict-template-expressions
+				// eslint-disable-next-line @elsikora/typescript/no-unsafe-member-access,@elsikora/typescript/restrict-template-expressions
 				version: packageData.version ? `v${packageData.version}` : "",
 			};
 		} catch {

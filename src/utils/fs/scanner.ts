@@ -15,19 +15,21 @@ export class ProjectScanner {
 		this.totalChars = 0;
 
 		const sortedFiles: Array<IFileContent> = [...files].sort((a: IFileContent, b: IFileContent) => {
-			// eslint-disable-next-line @elsikora-typescript/explicit-function-return-type,@elsikora-unicorn/consistent-function-scoping
+			// eslint-disable-next-line @elsikora/typescript/explicit-function-return-type,@elsikora/unicorn/consistent-function-scoping
 			const configScore = (name: string) => {
 				if (name.includes("config")) return 1;
 
+				// eslint-disable-next-line @elsikora/typescript/no-magic-numbers
 				if (name.includes("main") || name.includes("index")) return 2;
 
+				// eslint-disable-next-line @elsikora/typescript/no-magic-numbers
 				return 3;
 			};
 
 			return configScore(a.path) - configScore(b.path);
 		});
 
-		// eslint-disable-next-line @elsikora-unicorn/no-array-reduce
+		// eslint-disable-next-line @elsikora/unicorn/no-array-reduce
 		const filesByExtension: Record<string, Array<IFileContent>> = sortedFiles.reduce<Record<string, Array<IFileContent>>>((accumulator: Record<string, Array<IFileContent>>, file: IFileContent) => {
 			const extension: string = file.extension.slice(1).toUpperCase();
 
@@ -70,7 +72,7 @@ export class ProjectScanner {
 		const files: Array<string> = await glob(pattern, {
 			ignore: SCANNER_INGNORED_DIRS.map((directory: string) => `**/${directory}/**`),
 			maxDepth: maxDepth,
-			// eslint-disable-next-line @elsikora-typescript/naming-convention
+			// eslint-disable-next-line @elsikora/typescript/naming-convention
 			nodir: true,
 		});
 
@@ -83,7 +85,6 @@ export class ProjectScanner {
 
 			if (hasValidExtension) {
 				try {
-					// eslint-disable-next-line no-await-in-loop
 					const content: string = await fs.promises.readFile(file, "utf8");
 					results.push({
 						content: content,

@@ -28,7 +28,7 @@ export class AIService {
 		});
 	}
 
-	async generateReadme({ doneFromChangelog, lang = "en", model, projectContext, provider, repoInfo }: { provider?: EAIProvider } & IGenerateReadmeInput): Promise<IGenerateReadmeOutput> {
+	async generateReadme({ changelogContent, lang = "en", model, projectContext, provider, repoInfo }: { provider?: EAIProvider } & IGenerateReadmeInput): Promise<IGenerateReadmeOutput> {
 		const spinner: TSpinnerInstance = startSpinner("Generating README...");
 
 		try {
@@ -37,9 +37,7 @@ export class AIService {
 
 			for (const licensePath of licensePaths) {
 				try {
-					// eslint-disable-next-line no-await-in-loop
-					const content: string = await fs.promises.readFile(licensePath, "utf8");
-					licenseContent = content;
+					licenseContent = await fs.promises.readFile(licensePath, "utf8");
 
 					break;
 				} catch {
@@ -47,12 +45,21 @@ export class AIService {
 				}
 			}
 
-			const promptContent: string = this.buildPrompt(repoInfo, lang, projectContext) + (licenseContent ? `\n\nLICENSE file contents:\n${licenseContent}` : "");
+			let promptContent: string = this.buildPrompt(repoInfo, lang, projectContext);
+
+			if (licenseContent) {
+				promptContent += `\n\nLICENSE file contents:\n${licenseContent}`;
+			}
+
+			if (changelogContent) {
+				promptContent += `\n\nCHANGELOG file contents:\n${changelogContent}`;
+			}
 
 			let rawContent: string = "";
 
 			if (provider === EAIProvider.ANTHROPIC) {
 				const response: Anthropic.Message = await this.ANTHROPIC.messages.create({
+					// eslint-disable-next-line @elsikora/typescript/no-magic-numbers
 					max_tokens: 8192,
 					messages: [
 						{
@@ -63,6 +70,7 @@ export class AIService {
 					model,
 				});
 
+				// @ts-ignore
 				rawContent = "text" in response.content[0] ? response.content[0]?.text : "";
 			} else {
 				const response: OpenAI.ChatCompletion = await this.OPENAI.chat.completions.create({
@@ -71,7 +79,7 @@ export class AIService {
 					response_format: { type: "json_object" },
 				});
 
-				rawContent = response.choices?.[0]?.message?.content || "";
+				rawContent = response.choices?.[0]?.message?.content ?? "";
 			}
 
 			stopSpinner(spinner, "Raw README data received");
@@ -79,7 +87,7 @@ export class AIService {
 
 			const parsedData: IGeneratedReadme = this.parseResponse(rawContent, repoInfo.name);
 
-			return this.buildFinalReadme(parsedData, doneFromChangelog);
+			return this.buildFinalReadme(parsedData);
 		} catch (error) {
 			stopSpinner(spinner, "Failed to generate README", false);
 
@@ -92,7 +100,7 @@ export class AIService {
 			const normalizedName: string = b.name.toLowerCase();
 
 			if (PREDEFINED_LIB_BADGES[normalizedName]) {
-				// eslint-disable-next-line @elsikora-sonar/no-dead-store,@elsikora-sonar/updated-loop-counter
+				// eslint-disable-next-line @elsikora/sonar/no-dead-store,@elsikora/sonar/updated-loop-counter
 				b = {
 					...b,
 					...PREDEFINED_LIB_BADGES[normalizedName],
@@ -101,50 +109,7 @@ export class AIService {
 		}
 	}
 
-	private beautifyRoadmap(roadmapText: string, doneFromChangelog: Array<string>, features: Array<string>): string {
-		let lines: Array<string> = roadmapText
-			.split("\n")
-			.map((l: string) => l.trim())
-			.filter(Boolean);
-
-		const hasAnyDone: boolean = lines.some((line: string) => /$begin:math:text$done$end:math:text$|$begin:math:display$done$end:math:display$|$begin:math:text$complete$end:math:text$|$begin:math:display$complete$end:math:display$/i.test(line));
-
-		if (lines.length === 0 || (!hasAnyDone && doneFromChangelog.length === 0)) {
-			const doneFeatures: Array<string> = features.slice(0, 3).map((f: string) => `(done) ${f}`);
-
-			if (doneFeatures.length === 0) {
-				doneFeatures.push("(done) Initial Setup", "(done) Basic Functionality");
-			}
-			lines = [...lines, ...doneFeatures];
-		}
-
-		if (!roadmapText.trim() && doneFromChangelog.length === 0 && lines.length === 0) {
-			return "No roadmap provided.";
-		}
-
-		const tableHeader: string = `| Task / Feature | Status |\n|---------------|--------|\n`;
-		const tableRows: Array<string> = [];
-
-		for (const line of lines) {
-			const isDone: boolean = /$begin:math:text$done$end:math:text$|$begin:math:display$done$end:math:display$|$begin:math:text$complete$end:math:text$|$begin:math:display$complete$end:math:display$/i.test(line);
-			const cleanLine: string = line.replace(/$begin:math:text$done$end:math:text$|$begin:math:display$done$end:math:display$|$begin:math:text$complete$end:math:text$|$begin:math:display$complete$end:math:display$/i, "").trim();
-
-			const status: string = isDone ? "✅ Done" : "🚧 In Progress";
-			tableRows.push(`| ${cleanLine} | ${status} |`);
-		}
-
-		if (doneFromChangelog.length > 0) {
-			tableRows.push(`| **Completed tasks from CHANGELOG:** |  |`);
-
-			for (const task of doneFromChangelog) {
-				tableRows.push(`| ${task} | ✅ Done |`);
-			}
-		}
-
-		return tableHeader + tableRows.join("\n");
-	}
-
-	private buildFinalReadme(parsedData: IGeneratedReadme, doneFromChangelog: Array<string>): IGenerateReadmeOutput {
+	private buildFinalReadme(parsedData: IGeneratedReadme): IGenerateReadmeOutput {
 		parsedData.logoUrl = parsedData.logoUrl || DEFAULT_LOGO_URL;
 
 		if (!Array.isArray(parsedData.badges) || parsedData.badges.length === 0) {
@@ -164,7 +129,8 @@ export class AIService {
 		const cleanInstallation: string = this.cleanCodeBlock(parsedData.installation);
 		const cleanUsage: string = parsedData.usage.trim();
 
-		const beautifiedRoadmap: string = this.beautifyRoadmap(parsedData.roadmap, doneFromChangelog, parsedData.features);
+		// Use roadmap as provided by LLM
+		const beautifiedRoadmap: string = parsedData.roadmap;
 
 		const tableOfContents: string = `
 ## 📚 Table of Contents
@@ -243,8 +209,16 @@ This project is licensed under **${parsedData.license}**.`;
 `;
 
 		// @ts-ignore
-		// eslint-disable-next-line @elsikora-typescript/restrict-template-expressions
-		return `You are a creative technical writer tasked with generating an engaging README for a software project. Based on the following details, generate a complete README structure in JSON format with imaginative and compelling content. ${languageInstructions[lang] || languageInstructions.en}
+		// eslint-disable-next-line @elsikora/typescript/restrict-template-expressions
+		return `You are a creative technical writer tasked with generating an engaging README for a software project. Based on the following details, generate a complete README structure in JSON format with imaginative and compelling content. ${languageInstructions[lang] ?? languageInstructions.en}
+
+Roadmap instructions:
+For the roadmap field, create a detailed roadmap section formatted as a markdown table with:
+- Table header: | Task / Feature | Status |
+- Each task should have a status (either "✅ Done" or "🚧 In Progress")
+- Tasks marked as "done" or "complete" in the CHANGELOG should be shown with ✅ Done status
+- Future tasks or in-progress tasks should be shown with 🚧 In Progress status
+- Be creative and comprehensive with the roadmap based on the project context and CHANGELOG provided
 
 Project information:
 - name: "${repoInfo.name}"
@@ -302,7 +276,7 @@ ONLY JSON OBJECT IN RESPONSE WITH NO ANY ADDITIONAL TEXT. NO MARKDOWN, NO ANY OT
 		console.log("RESPONSE", rawContent);
 
 		try {
-			// eslint-disable-next-line @elsikora-typescript/no-unsafe-return
+			// eslint-disable-next-line @elsikora/typescript/no-unsafe-return
 			return JSON.parse(rawContent);
 		} catch {
 			console.log(chalk.yellow("Warning: JSON parse failed. Using fallback structure."));

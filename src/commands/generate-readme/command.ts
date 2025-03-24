@@ -4,6 +4,11 @@ import type { IGenerateReadmeArguments } from "./types";
 
 import { generateReadmeAction } from "./action";
 
+/**
+ *
+ * @param {Command} program - The command program.
+ * @returns {Command} - The command program with the generate command added.
+ */
 export function createGenerateReadmeCommand(program: Command): Command {
 	return program
 		.command("generate [repo]")
