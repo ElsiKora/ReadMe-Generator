@@ -1,6 +1,7 @@
+// eslint-disable-next-line @elsikora/check-file/folder-match-with-fex
 export enum EOpenAIModel {
-	GPT_4_5_PREVIEW = "gpt-4.5-preview",
 	GPT_4 = "gpt-4",
+	GPT_4_5_PREVIEW = "gpt-4.5-preview",
 	GPT_4O = "gpt-4o",
 	GPT_4O_MINI = "gpt-4o-mini",
 	O1 = "o1",

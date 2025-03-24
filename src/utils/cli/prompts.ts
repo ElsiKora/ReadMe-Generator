@@ -8,9 +8,15 @@ import { EAnthropicModel } from "../../services/ai/anthropic-model.enum";
 import { EOpenAIModel } from "../../services/ai/openai-model.enum";
 import { EAIProvider } from "../../services/ai/provider.enum";
 
+/**
+ *
+ * @param {EAIProvider} provider - The AI provider to prompt for
+ * @returns {Promise<string>} - A Promise that resolves to the API key
+ */
 export async function promptForApiKey(provider: EAIProvider): Promise<string> {
-	const providerName = provider === EAIProvider.ANTHROPIC ? "Anthropic" : "OpenAI";
+	const providerName: string = provider === EAIProvider.ANTHROPIC ? "Anthropic" : "OpenAI";
 
+	// eslint-disable-next-line @elsikora/no-secrets/no-pattern-match
 	const apiKey: string | symbol = await text({
 		message: `Enter ${providerName} API key:`,
 		validate: (value: string): string | undefined => {
@@ -25,12 +31,14 @@ export async function promptForApiKey(provider: EAIProvider): Promise<string> {
 			if (provider === EAIProvider.OPENAI && !value.startsWith("sk-")) {
 				return "OpenAI API key should start with 'sk-'";
 			}
+
+			return undefined;
 		},
 	});
 
 	if (isCancel(apiKey)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -39,6 +47,10 @@ export async function promptForApiKey(provider: EAIProvider): Promise<string> {
 	return apiKey;
 }
 
+/**
+ *
+ * @returns {Promise<TLanguage>} - A Promise that resolves to the selected language
+ */
 export async function promptForLanguage(): Promise<TLanguage> {
 	const options: ReadonlyArray<TSelectOption<TLanguage>> = LANGUAGE_CHOICES.map((choice: TLanguageChoice) => ({
 		label: choice.name,
@@ -53,7 +65,7 @@ export async function promptForLanguage(): Promise<TLanguage> {
 
 	if (isCancel(language)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -62,6 +74,11 @@ export async function promptForLanguage(): Promise<TLanguage> {
 	return language;
 }
 
+/**
+ *
+ * @param {EAIProvider} provider - The AI provider to prompt for
+ * @returns {Promise<string>} - A Promise that resolves to the selected model
+ */
 export async function promptForModel(provider: EAIProvider): Promise<string> {
 	const choices: Array<TModelChoice> = [];
 
@@ -100,7 +117,7 @@ export async function promptForModel(provider: EAIProvider): Promise<string> {
 
 	if (isCancel(model)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -109,6 +126,10 @@ export async function promptForModel(provider: EAIProvider): Promise<string> {
 	return model;
 }
 
+/**
+ *
+ * @returns {Promise<string>} - A Promise that resolves to the output file name
+ */
 export async function promptForOutputFile(): Promise<string> {
 	const outputFile: string | symbol = await text({
 		defaultValue: DEFAULT_OUTPUT_FILE,
@@ -118,7 +139,7 @@ export async function promptForOutputFile(): Promise<string> {
 
 	if (isCancel(outputFile)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -127,6 +148,10 @@ export async function promptForOutputFile(): Promise<string> {
 	return outputFile;
 }
 
+/**
+ *
+ * @returns {Promise<EAIProvider>} - A Promise that resolves to the selected AI provider
+ */
 export async function promptForProvider(): Promise<EAIProvider> {
 	const options: ReadonlyArray<TSelectOption<EAIProvider>> = PROVIDER_CHOICES.map((choice: TProviderChoice) => ({
 		label: choice.name,
@@ -141,7 +166,7 @@ export async function promptForProvider(): Promise<EAIProvider> {
 
 	if (isCancel(provider)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -150,6 +175,10 @@ export async function promptForProvider(): Promise<EAIProvider> {
 	return provider;
 }
 
+/**
+ *
+ * @returns {Promise<string>} - A Promise that resolves to the output file name
+ */
 export async function promptForRepo(): Promise<string> {
 	const options: ReadonlyArray<TSelectOption<TRepoMode>> = REPO_MODE_CHOICES.map((choice: TRepoModeChoice) => ({
 		label: choice.name,
@@ -164,7 +193,7 @@ export async function promptForRepo(): Promise<string> {
 
 	if (isCancel(repoMode)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -177,7 +206,7 @@ export async function promptForRepo(): Promise<string> {
 
 		if (isCancel(repoPath)) {
 			cancel("Operation cancelled");
-			// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+			// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 			process.exit(0);
 		}
 
@@ -192,7 +221,7 @@ export async function promptForRepo(): Promise<string> {
 
 	if (isCancel(repoRemote)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 
@@ -201,6 +230,10 @@ export async function promptForRepo(): Promise<string> {
 	return repoRemote;
 }
 
+/**
+ *
+ * @returns {Promise<number>} - A Promise that resolves to the selected scan depth
+ */
 export async function promptForScanDepth(): Promise<number> {
 	const scanDepth: string | symbol = await text({
 		defaultValue: DEFAULT_SCAN_DEPTH,
@@ -210,15 +243,18 @@ export async function promptForScanDepth(): Promise<number> {
 				return "Please enter numbers only";
 			} else if (Number.parseInt(value, 10) < 1) {
 				return "Depth must be greater than 0";
+				// eslint-disable-next-line @elsikora/typescript/no-magic-numbers
 			} else if (Number.parseInt(value, 10) > 10) {
 				return "Depth must be less than 10";
 			}
+
+			return undefined;
 		},
 	});
 
 	if (isCancel(scanDepth)) {
 		cancel("Operation cancelled");
-		// eslint-disable-next-line @elsikora-unicorn/no-process-exit,elsikora-node/no-process-exit
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
 		process.exit(0);
 	}
 

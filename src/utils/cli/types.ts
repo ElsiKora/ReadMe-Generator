@@ -1,3 +1,4 @@
+/* eslint-disable @elsikora/typescript/naming-convention */
 import type { EAIProvider } from "../../services/ai/provider.enum";
 
 export type TLanguage = "de" | "en" | "es" | "fr" | "ru";

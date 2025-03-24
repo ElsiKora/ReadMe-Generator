@@ -1,7 +1,7 @@
 import type { IGeneratedReadme, IRepoInfo } from "../../types";
 
 export interface IGenerateReadmeInput {
-	doneFromChangelog: Array<string>;
+	changelogContent: string;
 	lang?: string;
 	model: string;
 	projectContext: string;
