@@ -15,13 +15,18 @@ import { AIService } from "../../services/ai/service";
 import { GithubService } from "../../services/github/service";
 import { LocalService } from "../../services/local/service";
 import { promptForApiKey, promptForLanguage, promptForModel, promptForOutputFile, promptForProvider, promptForRepo, promptForScanDepth } from "../../utils/cli/prompts";
-import { parseChangelogTasks } from "../../utils/fs/changelog";
+import { findChangelogFile, getChangelogContent } from "../../utils/fs/changelog";
 import { ProjectScanner } from "../../utils/fs/scanner";
 
 dotenv.config();
 
+/**
+ *
+ * @param {IGenerateReadmeArguments} argv - The arguments passed to the command.
+ * @returns {Promise<void>} - A Promise that resolves when the action is complete.
+ */
 export async function generateReadmeAction(argv: IGenerateReadmeArguments): Promise<void> {
-	// eslint-disable-next-line @elsikora-typescript/no-non-null-assertion
+	// eslint-disable-next-line @elsikora/typescript/no-non-null-assertion
 	const userRepoChoice: string = argv.repo === "." ? await promptForRepo() : argv.repo!;
 	const outputFile: string = await promptForOutputFile();
 
@@ -47,7 +52,6 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 
 	const isRemoteRepo: boolean = userRepoChoice.includes("/") && !fs.existsSync(userRepoChoice);
 	let repoInfo: IRepoInfo;
-	let projectContext: string = "";
 
 	if (isRemoteRepo) {
 		const githubService: GithubService = new GithubService();
@@ -57,21 +61,22 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 		repoInfo = localService.getRepoInfo(userRepoChoice);
 	}
 
-	repoInfo.author = repoInfo.author || "elsikora";
+	repoInfo.author = repoInfo.author ?? "elsikora";
 
-	// eslint-disable-next-line @elsikora-typescript/no-non-null-assertion
+	// eslint-disable-next-line @elsikora/typescript/no-non-null-assertion
 	const repoPath: string = isRemoteRepo ? repoInfo.tempDir! : path.resolve(userRepoChoice);
 	const scanner: ProjectScanner = new ProjectScanner();
 	const files: Array<IFileContent> = await scanner.scanProject(repoPath, scanDepth);
-	projectContext = scanner.extractContextInfo(files);
+	const projectContext: string = scanner.extractContextInfo(files);
 
-	const changelogPath: string = path.join(isRemoteRepo ? "." : path.resolve(userRepoChoice), "CHANGELOG.md");
-	const doneFromChangelog: Array<string> = parseChangelogTasks(changelogPath);
+	const basePath: string = isRemoteRepo ? "." : path.resolve(userRepoChoice);
+	const changelogPath: string = findChangelogFile(basePath) ?? path.join(basePath, "CHANGELOG.md");
+	const changelogContent: string = getChangelogContent(changelogPath);
 
 	const anthropicService: AIService = new AIService(key);
 
 	const generatedData: IGenerateReadmeOutput = await anthropicService.generateReadme({
-		doneFromChangelog,
+		changelogContent,
 		lang: language,
 		model,
 		projectContext,
@@ -82,7 +87,10 @@ export async function generateReadmeAction(argv: IGenerateReadmeArguments): Prom
 	let finalReadme: string = generatedData.readme;
 
 	if (fs.existsSync(changelogPath)) {
-		finalReadme += "\n\n## 📋 Changelog\nSee [CHANGELOG.md](CHANGELOG.md) for details.\n";
+		// Get the relative path to the changelog file from the output file location
+		const outputDirectory: string = path.dirname(outputFile);
+		const relativeChangelogPath: string = path.relative(outputDirectory, changelogPath);
+		finalReadme += `\n\n## 📋 Changelog\nSee [CHANGELOG.md](${relativeChangelogPath}) for details.\n`;
 	}
 
 	fs.writeFileSync(outputFile, finalReadme, "utf8");

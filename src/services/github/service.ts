@@ -19,14 +19,14 @@ import { LocalService } from "../local/service";
 const execAsync: (argument1: string) => Promise<string> = promisify(exec);
 
 export class GithubService {
-	// eslint-disable-next-line @elsikora-typescript/naming-convention
+	// eslint-disable-next-line @elsikora/typescript/naming-convention
 	private readonly tempBaseDir: string;
 
 	constructor() {
 		this.tempBaseDir = path.join(os.tmpdir(), "readme-generator");
 
 		if (!fs.existsSync(this.tempBaseDir)) {
-			// eslint-disable-next-line @elsikora-typescript/naming-convention
+			// eslint-disable-next-line @elsikora/typescript/naming-convention
 			fs.mkdirSync(this.tempBaseDir, { recursive: true });
 		}
 	}
@@ -47,11 +47,11 @@ export class GithubService {
 
 	async getRepoInfo(repoPath: string): Promise<IRepoInfo> {
 		const [owner, repoName]: Array<string> = repoPath.split("/");
-		const spinner: TSpinnerInstance = startSpinner(`Fetching ${owner}/${repoName} repository data...`);
+		const spinner: TSpinnerInstance = startSpinner(`Fetching ${String(owner)}/${String(repoName)} repository data...`);
 
 		try {
-			// eslint-disable-next-line @elsikora-typescript/typedef
-			const response = await axios.get<IGithubRepoResponse>(`https://api.github.com/repos/${owner}/${repoName}`, {
+			// eslint-disable-next-line @elsikora/typescript/typedef
+			const response = await axios.get<IGithubRepoResponse>(`https://api.github.com/repos/${String(owner)}/${String(repoName)}`, {
 				headers: process.env.GITHUB_TOKEN
 					? {
 							Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -59,13 +59,13 @@ export class GithubService {
 					: undefined,
 			});
 
-			const temporaryDirectory: string = path.join(this.tempBaseDir, `${owner}-${repoName}-${Date.now()}`);
+			const temporaryDirectory: string = path.join(this.tempBaseDir, `${String(owner)}-${String(repoName)}-${String(Date.now())}`);
 
 			stopSpinner(spinner, "GitHub data retrieved, cloning repository...");
 
 			const cloneSpinner: TSpinnerInstance = startSpinner("Cloning repository...");
 
-			const cloneUrl: string = process.env.GITHUB_TOKEN ? `https://${process.env.GITHUB_TOKEN}@github.com/${owner}/${repoName}.git` : `https://github.com/${owner}/${repoName}.git`;
+			const cloneUrl: string = process.env.GITHUB_TOKEN ? `https://${process.env.GITHUB_TOKEN}@github.com/${String(owner)}/${String(repoName)}.git` : `https://github.com/${String(owner)}/${String(repoName)}.git`;
 
 			try {
 				await execAsync(`git clone ${cloneUrl} ${temporaryDirectory}`);
@@ -78,7 +78,7 @@ export class GithubService {
 					author: response.data.owner.login,
 					codeStats: localInfo.codeStats,
 					description: response.data.description || "",
-					name: response.data.name || `${owner}/${repoName}`,
+					name: response.data.name || `${String(owner)}/${String(repoName)}`,
 					tempDir: temporaryDirectory,
 				};
 
@@ -91,7 +91,7 @@ export class GithubService {
 					author: response.data.owner.login,
 					codeStats: "Remote repo; basic info from GitHub only",
 					description: response.data.description || "",
-					name: response.data.name || `${owner}/${repoName}`,
+					name: response.data.name || `${String(owner)}/${String(repoName)}`,
 				};
 			}
 		} catch (error) {
