@@ -20,7 +20,7 @@ export default [
 		withRegexp: true,
 		withSonar: true,
 		withStylistic: true,
-		withTypescriptStrictn: true,
+		withTypescriptStrict: true,
 		withUnicorn: true,
 		withYaml: true,
 	})),
