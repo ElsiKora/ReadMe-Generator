@@ -39,10 +39,8 @@
 		"release": "semantic-release",
 		"start": "node dist/index.js",
 		"test:all": "npm run test:unit && npm run test:e2e",
-		"test:e2e": "vitest run --config vitest.e2e.config.js",
-		"test:unit": "vitest run --config vitest.unit.config.js",
-		"test:unit:coverage": "vitest run --coverage --config vitest.unit.config.js",
-		"test:unit:watch": "vitest watch --config vitest.unit.config.js"
+		"test:e2e": "npm run build && vitest --config vitest.config.e2e.js --typecheck.tsconfig tsconfig.json",
+		"test:unit": "vitest run test/unit --config vitest.config.unit.js"
 	},
 	"config": {
 		"commitizen": {
