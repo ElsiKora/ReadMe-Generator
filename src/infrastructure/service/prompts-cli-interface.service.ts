@@ -15,24 +15,27 @@ export class PromptsCliInterface implements ICliInterfaceService {
 	/**
 	 * Show a confirmation prompt
 	 * @param {string} message - The prompt message
+	 * @param {boolean} defaultValue - The default value
 	 * @returns {Promise<boolean>} Promise resolving to the user's choice
 	 */
-	async confirm(message: string): Promise<boolean> {
-		const promptOptions: prompts.PromptObject<"value"> = {
-			message,
-			name: "value",
-			type: "confirm",
-		};
-
-		// Add initial value using type assertion
-		// eslint-disable-next-line @elsikora/typescript/naming-convention, @elsikora/perfectionist/sort-intersection-types
-		(promptOptions as prompts.PromptObject<"value"> & { initial: boolean }).initial = false;
-
-		const response: prompts.Answers<"value"> = await prompts(promptOptions, {
-			onCancel: () => {
-				this.handleCancellation();
+	// eslint-disable-next-line @elsikora/typescript/naming-convention
+	async confirm(message: string, defaultValue: boolean = false): Promise<boolean> {
+		const response: prompts.Answers<"value"> = await prompts(
+			{
+				active: "Yes",
+				inactive: "No",
+				// eslint-disable-next-line @elsikora/typescript/naming-convention
+				initial: defaultValue,
+				message,
+				name: "value",
+				type: "toggle",
 			},
-		});
+			{
+				onCancel: () => {
+					this.handleCancellation();
+				},
+			},
+		);
 
 		return (response.value as boolean) ?? false;
 	}

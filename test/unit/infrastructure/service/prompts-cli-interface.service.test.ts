@@ -99,10 +99,36 @@ describe("PromptsCliInterface", () => {
 			expect(result).toBe(true);
 			expect(mockPromptsFunction).toHaveBeenCalledWith(
 				expect.objectContaining({
+					active: "Yes",
+					inactive: "No",
+					initial: false,
 					message: "Confirm?",
 					name: "value",
-					type: "confirm",
-					initial: false,
+					type: "toggle",
+				}),
+				expect.objectContaining({
+					onCancel: expect.any(Function),
+				})
+			);
+		});
+
+		it("should use custom default value when provided", async () => {
+			// Arrange
+			mockPromptsFunction.mockResolvedValue({ value: false });
+
+			// Act
+			const result = await service.confirm("Confirm?", true);
+
+			// Assert
+			expect(result).toBe(false);
+			expect(mockPromptsFunction).toHaveBeenCalledWith(
+				expect.objectContaining({
+					active: "Yes",
+					inactive: "No",
+					initial: true,
+					message: "Confirm?",
+					name: "value",
+					type: "toggle",
 				}),
 				expect.objectContaining({
 					onCancel: expect.any(Function),
