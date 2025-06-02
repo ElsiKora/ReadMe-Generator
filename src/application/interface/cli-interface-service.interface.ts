@@ -26,9 +26,10 @@ export interface ICliInterfaceService {
 	 * Show a text input prompt
 	 * @param {string} message - The prompt message
 	 * @param {string} defaultValue - The default value
+	 * @param {Function} validate - Optional validation function that returns true or error message
 	 * @returns {Promise<string>} Promise resolving to the user input
 	 */
-	prompt(message: string, defaultValue?: string): Promise<string>;
+	prompt(message: string, defaultValue?: string, validate?: (value: string) => boolean | string): Promise<string>;
 
 	/**
 	 * Show a select prompt

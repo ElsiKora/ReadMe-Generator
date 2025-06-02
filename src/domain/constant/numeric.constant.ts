@@ -3,6 +3,7 @@
  */
 export const OPENAI_MAX_TOKENS: number = 8192;
 export const ANTHROPIC_MAX_TOKENS: number = 8192;
+export const GOOGLE_MAX_TOKENS: number = 8192;
 
 /**
  * Temperature settings for AI models

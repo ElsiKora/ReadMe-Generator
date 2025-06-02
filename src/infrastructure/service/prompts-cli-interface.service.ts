@@ -7,6 +7,11 @@ import prompts from "prompts";
  * Prompts-based implementation of CLI interface service
  */
 export class PromptsCliInterface implements ICliInterfaceService {
+	constructor() {
+		// Set up global cancellation handler
+		prompts.override({});
+	}
+
 	/**
 	 * Show a confirmation prompt
 	 * @param {string} message - The prompt message
@@ -23,7 +28,11 @@ export class PromptsCliInterface implements ICliInterfaceService {
 		// eslint-disable-next-line @elsikora/typescript/naming-convention, @elsikora/perfectionist/sort-intersection-types
 		(promptOptions as prompts.PromptObject<"value"> & { initial: boolean }).initial = false;
 
-		const response: prompts.Answers<"value"> = await prompts(promptOptions);
+		const response: prompts.Answers<"value"> = await prompts(promptOptions, {
+			onCancel: () => {
+				this.handleCancellation();
+			},
+		});
 
 		return (response.value as boolean) ?? false;
 	}
@@ -49,9 +58,10 @@ export class PromptsCliInterface implements ICliInterfaceService {
 	 * Show a text input prompt
 	 * @param {string} message - The prompt message
 	 * @param {string} withDefaultValue - The default value
+	 * @param {Function} validate - Optional validation function that returns true or error message
 	 * @returns {Promise<string>} Promise resolving to the user input
 	 */
-	async prompt(message: string, withDefaultValue?: string): Promise<string> {
+	async prompt(message: string, withDefaultValue?: string, validate?: (value: string) => boolean | string): Promise<string> {
 		const promptOptions: prompts.PromptObject<"value"> = {
 			message,
 			name: "value",
@@ -64,7 +74,16 @@ export class PromptsCliInterface implements ICliInterfaceService {
 			(promptOptions as prompts.PromptObject<"value"> & { initial: string }).initial = withDefaultValue;
 		}
 
-		const response: prompts.Answers<"value"> = await prompts(promptOptions);
+		// Add validation if provided
+		if (validate) {
+			(promptOptions as { validate: (value: string) => boolean | string } & prompts.PromptObject<"value">).validate = validate;
+		}
+
+		const response: prompts.Answers<"value"> = await prompts(promptOptions, {
+			onCancel: () => {
+				this.handleCancellation();
+			},
+		});
 
 		return (response.value as string) ?? "";
 	}
@@ -83,12 +102,19 @@ export class PromptsCliInterface implements ICliInterfaceService {
 			value: opt.value,
 		}));
 
-		const response: prompts.Answers<"value"> = await prompts({
-			choices,
-			message,
-			name: "value",
-			type: "select",
-		});
+		const response: prompts.Answers<"value"> = await prompts(
+			{
+				choices,
+				message,
+				name: "value",
+				type: "select",
+			},
+			{
+				onCancel: () => {
+					this.handleCancellation();
+				},
+			},
+		);
 
 		return response.value as T;
 	}
@@ -100,5 +126,15 @@ export class PromptsCliInterface implements ICliInterfaceService {
 	success(message: string): void {
 		// eslint-disable-next-line @elsikora/javascript/no-console
 		console.log(chalk.green(message));
+	}
+
+	/**
+	 * Handle user cancellation (Ctrl+C)
+	 */
+	private handleCancellation(): void {
+		// eslint-disable-next-line @elsikora/javascript/no-console
+		console.log(chalk.yellow("\n\n⚠️  Operation cancelled by user"));
+		// eslint-disable-next-line @elsikora/unicorn/no-process-exit
+		process.exit(0);
 	}
 }

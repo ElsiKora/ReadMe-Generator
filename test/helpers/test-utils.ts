@@ -50,6 +50,19 @@ export function createMockLlmPromptContext(): ILlmPromptContext {
 		changelogContent: "# Changelog\n\n## [1.0.0] - 2023-01-01\n### Added\n- Initial release",
 		projectContext: "This is a test project context",
 		language: "en",
+		scanDepth: 2,
+		scannedFiles: [
+			{
+				path: "src/index.ts",
+				content: "console.log('Hello, world!');",
+				size: 30,
+			},
+			{
+				path: "package.json",
+				content: '{"name": "test-project", "version": "1.0.0"}',
+				size: 45,
+			},
+		],
 	};
 }
 
@@ -97,6 +110,9 @@ export function createMockFileSystemService(): IFileSystemService {
 		exists: vi.fn().mockResolvedValue(true),
 		getCurrentDirectory: vi.fn().mockReturnValue("/test/directory"),
 		joinPath: vi.fn().mockImplementation((...segments) => segments.join("/")),
+		listFiles: vi.fn().mockResolvedValue(["src/index.ts", "package.json", "README.md"]),
+		isDirectory: vi.fn().mockResolvedValue(true),
+		getFileStats: vi.fn().mockResolvedValue({ size: 1024 }),
 	};
 }
 
