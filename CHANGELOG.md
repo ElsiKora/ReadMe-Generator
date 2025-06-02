@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.0.7...v1.1.0) (2025-06-02)
+
+
+### Features
+
+* **cli:** add default value parameter to confirm method ([0c96d80](https://github.com/ElsiKora/ReadMe-Generator/commit/0c96d80461ce30993e50cd7e8d7fe5e4a76df6c0))
+* **core:** add comprehensive readme generation with config and logo support ([d3feef7](https://github.com/ElsiKora/ReadMe-Generator/commit/d3feef7949f4783cebdabaa1e4982735a5024133))
+
 ## [1.0.7](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.0.6...v1.0.7) (2025-05-31)
 
 ## [1.0.6](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.0.5...v1.0.6) (2025-03-24)
