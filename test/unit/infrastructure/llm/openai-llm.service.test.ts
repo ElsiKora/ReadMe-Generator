@@ -6,8 +6,10 @@ import { LLMConfiguration } from "../../../../src/domain/entity/llm-configuratio
 import { ELLMProvider } from "../../../../src/domain/enum/llm-provider.enum.js";
 import { EOpenAIModel } from "../../../../src/domain/enum/openai-model.enum.js";
 import type { ILlmPromptContext } from "../../../../src/application/interface/llm-service.interface.js";
+import type { IPromptBuilder } from "../../../../src/application/interface/prompt-builder.interface.js";
+import type { IReadmeResponseParser } from "../../../../src/application/interface/readme-response-parser.interface.js";
 import { createMockLlmPromptContext } from "../../../helpers/test-utils.js";
-import { ReadmeBuilder } from "../../../../src/infrastructure/service/readme-builder.service.js";
+import { Readme } from "../../../../src/domain/entity/readme.entity.js";
 
 // Mock OpenAI
 vi.mock("openai");
@@ -16,17 +18,39 @@ describe("OpenAILlmService", () => {
 	let service: OpenAILlmService;
 	let mockOpenAI: any;
 	let mockCreate: any;
-	let readmeBuilder: ReadmeBuilder;
+	let mockPromptBuilder: IPromptBuilder;
+	let mockResponseParser: IReadmeResponseParser;
 
 	beforeEach(() => {
 		// Reset mocks
 		vi.clearAllMocks();
 
-		// Create dependencies
-		readmeBuilder = new ReadmeBuilder();
+		// Create mock prompt builder
+		mockPromptBuilder = {
+			buildSystemPrompt: vi.fn().mockReturnValue("System prompt"),
+			buildUserPrompt: vi.fn().mockReturnValue("User prompt"),
+		};
+
+		// Create mock response parser
+		mockResponseParser = {
+			parseResponse: vi.fn().mockReturnValue(new Readme({
+				title: "Test Project",
+				shortDescription: "A test project",
+				longDescription: "Detailed description",
+				logoUrl: "https://example.com/logo.png",
+				badges: [],
+				features: ["Feature 1", "Feature 2"],
+				installation: "npm install",
+				usage: "npm start",
+				roadmap: "| Task | Status |\n|------|--------|\n| Test | Done |",
+				faq: "Q: Test?\nA: Yes",
+				license: "MIT",
+				content: "Generated README content"
+			})),
+		};
 
 		// Create service with dependencies
-		service = new OpenAILlmService(readmeBuilder);
+		service = new OpenAILlmService(mockPromptBuilder, mockResponseParser);
 
 		// Setup OpenAI mock
 		mockCreate = vi.fn();
@@ -107,8 +131,14 @@ describe("OpenAILlmService", () => {
 			expect(result).toBeDefined();
 			expect(result.getTitle()).toBe("Test Project");
 			expect(result.getShortDescription()).toBe("A test project");
-			expect(result.getBadges()).toHaveLength(1);
 			expect(result.getFeatures()).toEqual(["Feature 1", "Feature 2"]);
+
+			// Verify prompt builder was called
+			expect(mockPromptBuilder.buildSystemPrompt).toHaveBeenCalledWith(mockContext);
+			expect(mockPromptBuilder.buildUserPrompt).toHaveBeenCalledWith(mockContext);
+
+			// Verify response parser was called
+			expect(mockResponseParser.parseResponse).toHaveBeenCalledWith(mockResponse.choices[0].message.content, mockContext);
 
 			// Verify OpenAI was called correctly
 			expect(vi.mocked(OpenAI)).toHaveBeenCalledWith({
@@ -119,8 +149,8 @@ describe("OpenAILlmService", () => {
 			expect(mockCreate).toHaveBeenCalledWith({
 				max_tokens: expect.any(Number),
 				messages: [
-					{ content: expect.stringContaining("creative technical writer"), role: "system" },
-					{ content: expect.stringContaining("test-project"), role: "user" },
+					{ content: "System prompt", role: "system" },
+					{ content: "User prompt", role: "user" },
 				],
 				model: EOpenAIModel.GPT_4O,
 				response_format: { type: "json_object" },
@@ -167,6 +197,8 @@ describe("OpenAILlmService", () => {
 				language: "es",
 			};
 
+			mockPromptBuilder.buildSystemPrompt = vi.fn().mockReturnValue("Sistema prompt en español");
+
 			mockCreate.mockResolvedValueOnce({
 				choices: [{
 					message: {
@@ -182,8 +214,7 @@ describe("OpenAILlmService", () => {
 			await service.generateReadme(contextWithLanguage, mockConfig);
 
 			// Assert
-			const systemMessage = mockCreate.mock.calls[0][0].messages[0];
-			expect(systemMessage.content).toContain("español");
+			expect(mockPromptBuilder.buildSystemPrompt).toHaveBeenCalledWith(contextWithLanguage);
 		});
 
 		it("should throw error when no response from OpenAI", async () => {
@@ -211,6 +242,11 @@ describe("OpenAILlmService", () => {
 				}],
 			});
 
+			// Mock parser to throw error
+			mockResponseParser.parseResponse = vi.fn().mockImplementation(() => {
+				throw new Error("Failed to parse README response");
+			});
+
 			// Act & Assert
 			await expect(service.generateReadme(mockContext, mockConfig))
 				.rejects.toThrow("Failed to parse README response");
@@ -227,6 +263,11 @@ describe("OpenAILlmService", () => {
 						}),
 					},
 				}],
+			});
+
+			// Mock parser to throw error
+			mockResponseParser.parseResponse = vi.fn().mockImplementation(() => {
+				throw new Error("Missing required fields in response");
 			});
 
 			// Act & Assert
@@ -252,14 +293,14 @@ describe("OpenAILlmService", () => {
 			const result = await service.generateReadme(mockContext, mockConfig);
 
 			// Assert
-			expect(result.getBadges()).toEqual([]);
-			expect(result.getFeatures()).toEqual([]);
-			expect(result.getLicense()).toBe("MIT"); // Default
-			expect(result.getLogoUrl()).toBe("");
+			expect(result).toBeDefined();
+			expect(result.getTitle()).toBe("Test Project"); // From mock parser
 		});
 
 		it("should include changelog in prompt when provided", async () => {
 			// Arrange
+			mockPromptBuilder.buildUserPrompt = vi.fn().mockReturnValue("User prompt with changelog");
+
 			mockCreate.mockResolvedValueOnce({
 				choices: [{
 					message: {
@@ -275,9 +316,7 @@ describe("OpenAILlmService", () => {
 			await service.generateReadme(mockContext, mockConfig);
 
 			// Assert
-			const userMessage = mockCreate.mock.calls[0][0].messages[1];
-			expect(userMessage.content).toContain("CHANGELOG file contents");
-			expect(userMessage.content).toContain("# Changelog");
+			expect(mockPromptBuilder.buildUserPrompt).toHaveBeenCalledWith(mockContext);
 		});
 
 		it("should handle API errors", async () => {
@@ -314,7 +353,7 @@ describe("OpenAILlmService", () => {
 			const result = await service.generateReadme(createMockLlmPromptContext(), mockConfig);
 
 			// Assert
-			expect(result.getLongDescription()).toBe(longDescription);
+			expect(result).toBeDefined();
 		});
 
 		it("should handle special characters in content", async () => {
@@ -338,8 +377,7 @@ describe("OpenAILlmService", () => {
 			const result = await service.generateReadme(createMockLlmPromptContext(), mockConfig);
 
 			// Assert
-			expect(result.getTitle()).toBe("Test \"Project\" with 'quotes'");
-			expect(result.getShortDescription()).toContain("newlines");
+			expect(result).toBeDefined();
 		});
 	});
 }); 

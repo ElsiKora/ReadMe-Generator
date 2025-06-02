@@ -1,4 +1,4 @@
-import type { LLMConfiguration, Readme, RepositoryInfo } from "../../domain/index.js";
+import type { ELogoType, LLMConfiguration, Readme, RepositoryInfo } from "../../domain/index.js";
 
 /**
  * Context for generating README with LLM
@@ -6,8 +6,16 @@ import type { LLMConfiguration, Readme, RepositoryInfo } from "../../domain/inde
 export interface ILlmPromptContext {
 	changelogContent?: string;
 	language?: string;
+	logoType?: ELogoType;
+	logoUrl?: string;
 	projectContext?: string;
 	repositoryInfo: RepositoryInfo;
+	scanDepth?: number;
+	scannedFiles?: Array<{
+		content: string;
+		path: string;
+		size: number;
+	}>;
 }
 
 /**
