@@ -37,7 +37,7 @@ export class GoogleLlmService implements ILlmService {
 			generationConfig: {
 				responseMimeType: "application/json",
 			},
-			model: configuration.getModel() ?? EGoogleModel.GEMINI_1_5_PRO,
+			model: configuration.getModel() ?? EGoogleModel.GEMINI_1_5_PRO_LATEST,
 		});
 
 		const systemPrompt: string = this.PROMPT_BUILDER.buildSystemPrompt(context);
