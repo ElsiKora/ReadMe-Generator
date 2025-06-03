@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.1.0...v1.2.0) (2025-06-03)
+
+
+### Features
+
+* **llm:** update google model options with latest 2025 models and improved descriptions ([e322ae6](https://github.com/ElsiKora/ReadMe-Generator/commit/e322ae63af69f9a2be83dfba620722b609c8f025))
+
 # [1.1.0](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.0.7...v1.1.0) (2025-06-02)
 
 
