@@ -216,7 +216,7 @@ describe("ConfigureLLMUseCase", () => {
 			// Assert
 			const modelSelectCall = vi.mocked(mockCliInterface.select).mock.calls[1];
 			expect(modelSelectCall[0]).toBe("Select Google model:");
-			expect(modelSelectCall[1]).toHaveLength(11); // Updated to match new model count
+			expect(modelSelectCall[1]).toHaveLength(15); // Updated to match new model count
 		});
 
 		it("should show AWS Bedrock models with hints", async () => {

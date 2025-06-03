@@ -272,16 +272,20 @@ export class ConfigureLLMUseCase {
 			case ELLMProvider.GOOGLE: {
 				const options: Array<ISelectOption> = [
 					{ label: "Gemini 2.5 Pro (Latest 2025, most capable)", value: EGoogleModel.GEMINI_2_5_PRO },
-					{ label: "Gemini 2.5 Flash (Latest 2025, fast)", value: EGoogleModel.GEMINI_2_5_FLASH },
-					{ label: "Gemini 2.0 Flash (Experimental)", value: EGoogleModel.GEMINI_2_0_FLASH_EXP },
-					{ label: "Gemini 1.5 Pro (Stable, capable)", value: EGoogleModel.GEMINI_1_5_PRO },
-					{ label: "Gemini 1.5 Flash (Fast, stable)", value: EGoogleModel.GEMINI_1_5_FLASH },
-					{ label: "Gemini 1.5 Flash 8B (Lightweight)", value: EGoogleModel.GEMINI_1_5_FLASH_8B },
-					{ label: "Gemini 1.0 Pro", value: EGoogleModel.GEMINI_1_0_PRO },
-					{ label: "Gemma 3 27B (Most capable open model)", value: EGoogleModel.GEMMA_3_27B },
-					{ label: "Gemma 3 12B (Strong language model)", value: EGoogleModel.GEMMA_3_12B },
-					{ label: "Gemma 3 4B (Balanced, multimodal)", value: EGoogleModel.GEMMA_3_4B },
-					{ label: "Gemma 3 1B (Lightweight)", value: EGoogleModel.GEMMA_3_1B },
+					{ label: "Gemini 2.5 Flash (Latest 2025, fast & versatile)", value: EGoogleModel.GEMINI_2_5_FLASH },
+					{ label: "Gemini 2.0 Pro (Experimental, advanced)", value: EGoogleModel.GEMINI_2_0_PRO_EXP },
+					{ label: "Gemini 2.0 Flash (Stable, multimodal)", value: EGoogleModel.GEMINI_2_0_FLASH },
+					{ label: "Gemini 2.0 Flash Lite (Lightweight, efficient)", value: EGoogleModel.GEMINI_2_0_FLASH_LITE },
+					{ label: "Gemini 1.5 Pro Latest (2M tokens)", value: EGoogleModel.GEMINI_1_5_PRO_LATEST },
+					{ label: "Gemini 1.5 Pro (Stable, 2M tokens)", value: EGoogleModel.GEMINI_1_5_PRO },
+					{ label: "Gemini 1.5 Flash Latest (1M tokens, fast)", value: EGoogleModel.GEMINI_1_5_FLASH_LATEST },
+					{ label: "Gemini 1.5 Flash (Stable, 1M tokens)", value: EGoogleModel.GEMINI_1_5_FLASH },
+					{ label: "Gemini 1.5 Flash 8B (Smallest, most efficient)", value: EGoogleModel.GEMINI_1_5_FLASH_8B },
+					{ label: "Gemma 3 27B (Open model, most capable)", value: EGoogleModel.GEMMA_3_27B },
+					{ label: "Gemma 3 12B (Open model, balanced)", value: EGoogleModel.GEMMA_3_12B },
+					{ label: "Gemma 3 4B (Open model, efficient)", value: EGoogleModel.GEMMA_3_4B },
+					{ label: "Gemma 3 1B (Open model, lightweight)", value: EGoogleModel.GEMMA_3_1B },
+					{ label: "LearnLM 2.0 Flash (Educational focus)", value: EGoogleModel.LEARNLM_2_0_FLASH },
 				];
 
 				return this.cliInterface.select("Select Google model:", options);
