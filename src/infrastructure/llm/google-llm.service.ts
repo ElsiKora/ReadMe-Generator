@@ -1,15 +1,15 @@
 import type { GenerateContentResult } from "@google/generative-ai";
 
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-import { EGoogleModel } from "../../domain/enum/google-model.enum.js";
+import { EGoogleModel } from "../../domain/enum/google-model.enum";
 
 /**
  * Google implementation of the LLM service
@@ -37,7 +37,7 @@ export class GoogleLlmService implements ILlmService {
 			generationConfig: {
 				responseMimeType: "application/json",
 			},
-			model: configuration.getModel() ?? EGoogleModel.GEMINI_1_5_PRO_LATEST,
+			model: configuration.getModel() ?? EGoogleModel.GEMINI_3_FLASH_PREVIEW,
 		});
 
 		const systemPrompt: string = this.PROMPT_BUILDER.buildSystemPrompt(context);

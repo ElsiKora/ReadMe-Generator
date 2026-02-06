@@ -1,25 +1,33 @@
+import type { Dirent } from "node:fs";
+
 import type { IContainer } from "@elsikora/cladi";
 
-import type { ICliInterfaceService, ISelectOption } from "../../application/interface/cli-interface-service.interface.js";
-import type { IConfigService } from "../../application/interface/config-service.interface.js";
-import type { IConfig } from "../../application/interface/config.interface.js";
-import type { IFileSystemService } from "../../application/interface/file-system-service.interface.js";
-import type { IGitCloneService } from "../../application/interface/git-clone-service.interface.js";
-import type { IGitRepository } from "../../application/interface/git-repository.interface.js";
-import type { IImageUploadService } from "../../application/interface/image-upload-service.interface.js";
-import type { ILlmPromptContext } from "../../application/interface/llm-service.interface.js";
-import type { ConfigureLLMUseCase } from "../../application/use-case/configure-llm.use-case.js";
-import type { GenerateReadmeUseCase } from "../../application/use-case/generate-readme.use-case.js";
-import type { LLMConfiguration, Readme } from "../../domain/index.js";
+import type { ICliInterfaceServiceSelectOptions } from "../../application/interface/cli-interface-service-select-options.interface";
+import type { ICliInterfaceService } from "../../application/interface/cli-interface-service.interface";
+import type { IConfigService } from "../../application/interface/config-service.interface";
+import type { IConfig } from "../../application/interface/config.interface";
+import type { IFileSystemService } from "../../application/interface/file-system-service.interface";
+import type { IGitCloneService } from "../../application/interface/git-clone-service.interface";
+import type { IGitRepository, IGitStats, IPackageInfo } from "../../application/interface/git-repository.interface";
+import type { IImageUploadService } from "../../application/interface/image-upload-service.interface";
+import type { IInfrastructureDetectionService } from "../../application/interface/infrastructure-detection.interface";
+import type { ILlmPromptContext } from "../../application/interface/llm-service.interface";
+import type { ConfigureLLMUseCase } from "../../application/use-case/configure-llm.use-case";
+import type { GenerateReadmeUseCase } from "../../application/use-case/generate-readme.use-case";
+import type { IDetectedTools, ILanguageStatEntry } from "../../domain/entity/repository-info.entity";
+import type { LLMConfiguration, Readme } from "../../domain/index";
 
 import fs from "node:fs/promises";
+import path from "node:path";
 
-import { KILOBYTE, MAX_FILE_SIZE, MAX_TOTAL_SIZE, MEGABYTE } from "../../domain/constant/file-scanning.constant.js";
-import { EScanDepth } from "../../domain/enum/scan-depth.enum.js";
-import { ELogoType, RepositoryInfo } from "../../domain/index.js";
-import { SECOND_ELEMENT_INDEX, THIRD_ELEMENT_INDEX } from "../../infrastructure/constant/logo-generator.constant.js";
-import { CliInterfaceServiceToken, ConfigServiceToken, ConfigureLLMUseCaseToken, FileSystemServiceToken, GenerateReadmeUseCaseToken, GitCloneServiceToken, GitRepositoryToken, ImageUploadServiceToken } from "../../infrastructure/di/container.js";
-import { LogoGeneratorService } from "../../infrastructure/service/logo-generator.service.js";
+import { DEFAULT_SCAN_DEPTH, KILOBYTE, MAX_FILE_SIZE, MAX_TOTAL_SIZE, MEGABYTE } from "../../domain/constant/file-scanning.constant";
+import { EScanDepth } from "../../domain/enum/scan-depth.enum";
+import { ELogoType, RepositoryInfo } from "../../domain/index";
+import { EXTENSION_LANGUAGE_MAP } from "../../infrastructure/constant/language-map.constant";
+import { SECOND_ELEMENT_INDEX, THIRD_ELEMENT_INDEX } from "../../infrastructure/constant/logo-generator.constant";
+import { DIRECTORY_TREE_IGNORE, PERCENTAGE_MULTIPLIER, TOP_LANGUAGES_LIMIT } from "../../infrastructure/constant/readme-generation.constant";
+import { CliInterfaceServiceToken, ConfigServiceToken, ConfigureLLMUseCaseToken, FileSystemServiceToken, GenerateReadmeUseCaseToken, GitCloneServiceToken, GitRepositoryToken, ImageUploadServiceToken, InfrastructureDetectionServiceToken } from "../../infrastructure/di/container";
+import { LogoGeneratorService } from "../../infrastructure/service/logo-generator.service";
 
 /**
  * CLI command for generating README
@@ -41,6 +49,8 @@ export class GenerateReadmeCommand {
 
 	private readonly IMAGE_UPLOAD_SERVICE: IImageUploadService;
 
+	private readonly INFRASTRUCTURE_DETECTION: IInfrastructureDetectionService;
+
 	private readonly LOGO_GENERATOR_SERVICE: LogoGeneratorService;
 
 	constructor(container: IContainer) {
@@ -53,8 +63,9 @@ export class GenerateReadmeCommand {
 		const gitCloneService: IGitCloneService | undefined = container.get<IGitCloneService>(GitCloneServiceToken);
 		const gitRepository: IGitRepository | undefined = container.get<IGitRepository>(GitRepositoryToken);
 		const imageUploadService: IImageUploadService | undefined = container.get<IImageUploadService>(ImageUploadServiceToken);
+		const infrastructureDetection: IInfrastructureDetectionService | undefined = container.get<IInfrastructureDetectionService>(InfrastructureDetectionServiceToken);
 
-		if (!cliInterface || !configService || !configureLLMUseCase || !fileSystem || !generateReadmeUseCase || !gitCloneService || !gitRepository || !imageUploadService) {
+		if (!cliInterface || !configService || !configureLLMUseCase || !fileSystem || !generateReadmeUseCase || !gitCloneService || !gitRepository || !imageUploadService || !infrastructureDetection) {
 			throw new Error("Required services not found in container");
 		}
 
@@ -66,6 +77,7 @@ export class GenerateReadmeCommand {
 		this.GIT_CLONE_SERVICE = gitCloneService;
 		this.GIT_REPOSITORY = gitRepository;
 		this.IMAGE_UPLOAD_SERVICE = imageUploadService;
+		this.INFRASTRUCTURE_DETECTION = infrastructureDetection;
 		this.LOGO_GENERATOR_SERVICE = new LogoGeneratorService();
 	}
 
@@ -98,16 +110,16 @@ export class GenerateReadmeCommand {
 
 			// Ask user for repository source
 			const repositoryResult: { clonedRepoPath?: string; projectPath: string; repositoryInfo: RepositoryInfo; repoSource: string } = await this.handleRepositorySource(existingConfig, useExistingConfig);
-			const repositoryInfo: RepositoryInfo = repositoryResult.repositoryInfo;
+			let repositoryInfo: RepositoryInfo = repositoryResult.repositoryInfo;
 			const projectPath: string = repositoryResult.projectPath;
 			const repoSource: string = repositoryResult.repoSource;
 			clonedRepoPath = repositoryResult.clonedRepoPath;
 
 			// Check if we need to get the repository owner from the user
-			const finalRepositoryInfo: RepositoryInfo = await this.handleRepositoryOwner(repositoryInfo, existingConfig, useExistingConfig);
+			repositoryInfo = await this.handleRepositoryOwner(repositoryInfo, existingConfig, useExistingConfig);
 
 			// Ask for logo generation preference
-			const logoResult: { logoType: ELogoType; logoUrl?: string } = await this.handleLogoGeneration(existingConfig, useExistingConfig, finalRepositoryInfo);
+			const logoResult: { logoType: ELogoType; logoUrl?: string } = await this.handleLogoGeneration(existingConfig, useExistingConfig, repositoryInfo);
 			const logoType: ELogoType = logoResult.logoType;
 			const logoUrl: string | undefined = logoResult.logoUrl;
 
@@ -119,7 +131,7 @@ export class GenerateReadmeCommand {
 			// Ask for scan depth
 			this.CLI_INTERFACE.info("📂 Project File Scanning");
 
-			const scanDepthOptions: Array<ISelectOption> = [
+			const scanDepthOptions: Array<ICliInterfaceServiceSelectOptions> = [
 				{ label: "Shallow (1 level)", value: EScanDepth.SHALLOW.toString() },
 				{ label: "Medium (2 levels)", value: EScanDepth.MEDIUM.toString() },
 				{ label: "Deep (3 levels)", value: EScanDepth.DEEP.toString() },
@@ -146,6 +158,102 @@ export class GenerateReadmeCommand {
 				scannedFiles = await this.scanProjectFiles(projectPath, scanDepth);
 			}
 
+			// === NEW: Collect enhanced data ===
+			this.CLI_INTERFACE.info("📊 Collecting project metadata...");
+
+			// Collect git stats
+			let gitStats: IGitStats | undefined;
+
+			try {
+				gitStats = await this.GIT_REPOSITORY.getGitStats();
+				this.CLI_INTERFACE.info(`📈 Git history: ${gitStats.commitCount} commits, ${gitStats.contributors.length} contributors, ${gitStats.tags.length} tags`);
+			} catch {
+				this.CLI_INTERFACE.info("⚠️  Could not collect git statistics");
+			}
+
+			// Collect extended package info
+			let packageInfo: IPackageInfo | undefined;
+
+			try {
+				packageInfo = await this.GIT_REPOSITORY.getExtendedPackageInfo(projectPath);
+
+				if (packageInfo.version) {
+					const licenseText: string = packageInfo.license ? " (" + packageInfo.license + ")" : "";
+					this.CLI_INTERFACE.info("📦 Package: v" + packageInfo.version + licenseText);
+				}
+			} catch {
+				this.CLI_INTERFACE.info("⚠️  Could not collect package information");
+			}
+
+			// Detect infrastructure
+			let detectedTools: IDetectedTools | undefined;
+
+			try {
+				detectedTools = await this.INFRASTRUCTURE_DETECTION.detect(projectPath);
+				const toolCount: number = detectedTools.cicd.length + detectedTools.containerization.length + detectedTools.linting.length + detectedTools.testing.length + detectedTools.bundlers.length + detectedTools.packageManagers.length;
+				this.CLI_INTERFACE.info(`🔧 Detected ${toolCount} infrastructure tools`);
+			} catch {
+				this.CLI_INTERFACE.info("⚠️  Could not detect infrastructure tools");
+			}
+
+			// Compute language stats from scanned files
+			let languageStats: Array<ILanguageStatEntry> | undefined;
+
+			if (scannedFiles && scannedFiles.length > 0) {
+				languageStats = this.computeLanguageStats(scannedFiles);
+
+				if (languageStats.length > 0) {
+					const topLanguages: string = languageStats
+						.slice(0, TOP_LANGUAGES_LIMIT)
+						.map((s: ILanguageStatEntry) => `${s.name} ${s.percentage.toFixed(0)}%`)
+						.join(", ");
+					this.CLI_INTERFACE.info(`📝 Languages: ${topLanguages}`);
+				}
+			}
+
+			// Generate directory tree
+			let directoryTree: string | undefined;
+
+			try {
+				directoryTree = await this.generateDirectoryTree(projectPath);
+			} catch {
+				// Ignore
+			}
+
+			// Ask about GitHub badges
+			let shouldIncludeGithubBadges: boolean = false;
+
+			if (useExistingConfig && existingConfig.shouldIncludeGithubBadges !== undefined) {
+				shouldIncludeGithubBadges = existingConfig.shouldIncludeGithubBadges;
+				this.CLI_INTERFACE.info(`📌 Using saved GitHub badges preference: ${shouldIncludeGithubBadges ? "enabled" : "disabled"}`);
+			} else {
+				shouldIncludeGithubBadges = await this.CLI_INTERFACE.confirm("Would you like to include dynamic GitHub badges (stars, forks, issues, etc.)?");
+			}
+
+			// Ask about contributors section
+			let shouldIncludeContributors: boolean = false;
+
+			if (useExistingConfig && existingConfig.shouldIncludeContributors !== undefined) {
+				shouldIncludeContributors = existingConfig.shouldIncludeContributors;
+				this.CLI_INTERFACE.info(`📌 Using saved contributors preference: ${shouldIncludeContributors ? "enabled" : "disabled"}`);
+			} else {
+				shouldIncludeContributors = await this.CLI_INTERFACE.confirm("Would you like to include a contributors section?");
+			}
+
+			// Enrich repositoryInfo with all collected data
+			repositoryInfo = new RepositoryInfo({
+				codeStats: repositoryInfo.getCodeStats(),
+				defaultBranch: repositoryInfo.getDefaultBranch(),
+				description: repositoryInfo.getDescription(),
+				detectedTools,
+				directoryTree,
+				gitStats,
+				languageStats,
+				name: repositoryInfo.getName(),
+				owner: repositoryInfo.getOwner(),
+				packageInfo,
+			});
+
 			// Select language
 			const language: string = await this.selectLanguage(existingConfig, useExistingConfig);
 
@@ -156,13 +264,18 @@ export class GenerateReadmeCommand {
 			// Create prompt context
 			const context: ILlmPromptContext = {
 				changelogContent,
+				directoryTree,
+				gitStats,
 				language,
 				logoType,
 				logoUrl,
+				packageInfo,
 				projectContext,
-				repositoryInfo: finalRepositoryInfo,
+				repositoryInfo,
 				scanDepth,
 				scannedFiles,
+				shouldIncludeContributors,
+				shouldIncludeGithubBadges,
 			};
 
 			// Generate README
@@ -180,9 +293,11 @@ export class GenerateReadmeCommand {
 					language,
 					logoType,
 					logoUrl,
-					repositoryOwner: finalRepositoryInfo.getOwner(),
+					repositoryOwner: repositoryInfo.getOwner(),
 					repositorySource: repoSource as "local" | "remote",
 					scanDepth,
+					shouldIncludeContributors,
+					shouldIncludeGithubBadges,
 				};
 
 				// Merge with existing LLM config if present
@@ -207,6 +322,14 @@ export class GenerateReadmeCommand {
 			this.CLI_INTERFACE.info(`📄 Title: ${readme.getTitle()}`);
 			this.CLI_INTERFACE.info(`📝 Description: ${readme.getShortDescription()}`);
 			this.CLI_INTERFACE.info(`🎯 Features: ${readme.getFeatures().length} features generated`);
+
+			if (readme.getHighlights().length > 0) {
+				this.CLI_INTERFACE.info(`💡 Highlights: ${readme.getHighlights().length} highlights`);
+			}
+
+			if (readme.getMermaidDiagrams()) {
+				this.CLI_INTERFACE.info("📊 Architecture diagrams included");
+			}
 		} catch (error) {
 			this.CLI_INTERFACE.error(`Failed to generate README: ${error instanceof Error ? error.message : "Unknown error"}`);
 			// eslint-disable-next-line @elsikora/unicorn/no-process-exit
@@ -225,36 +348,71 @@ export class GenerateReadmeCommand {
 	}
 
 	/**
+	 * Compute language statistics from scanned files
+	 * @param {Array<{ content: string; path: string; size: number }>} scannedFiles - The scanned files
+	 * @returns {Array<ILanguageStatEntry>} Language statistics sorted by percentage
+	 */
+	private computeLanguageStats(scannedFiles: Array<{ content: string; path: string; size: number }>): Array<ILanguageStatEntry> {
+		const languageStatsMap: Map<string, { extension: string; fileCount: number; lines: number; name: string }> = new Map<string, { extension: string; fileCount: number; lines: number; name: string }>();
+		let totalLines: number = 0;
+
+		for (const file of scannedFiles) {
+			const extension: string = file.path.split(".").pop()?.toLowerCase() ?? "";
+			const languageName: string | undefined = EXTENSION_LANGUAGE_MAP[extension];
+
+			if (!languageName) continue;
+
+			const lineCount: number = file.content.split("\n").length;
+			totalLines += lineCount;
+
+			const existingEntry: { extension: string; fileCount: number; lines: number; name: string } | undefined = languageStatsMap.get(languageName);
+
+			if (existingEntry) {
+				existingEntry.fileCount++;
+				existingEntry.lines += lineCount;
+			} else {
+				languageStatsMap.set(languageName, {
+					extension,
+					fileCount: 1,
+					lines: lineCount,
+					name: languageName,
+				});
+			}
+		}
+
+		if (totalLines === 0) return [];
+
+		const result: Array<ILanguageStatEntry> = [];
+
+		for (const [, stat] of languageStatsMap) {
+			result.push({
+				extension: stat.extension,
+				fileCount: stat.fileCount,
+				lines: stat.lines,
+				name: stat.name,
+				percentage: (stat.lines / totalLines) * PERCENTAGE_MULTIPLIER,
+			});
+		}
+
+		// Sort by percentage descending
+		result.sort((a: ILanguageStatEntry, b: ILanguageStatEntry) => b.percentage - a.percentage);
+
+		return result;
+	}
+
+	/**
 	 * Extract repository information from a Git URL
 	 * @param {string} gitUrl - The Git repository URL
 	 * @returns {RepositoryInfo} The extracted repository information
 	 */
 	private extractRepoInfoFromUrl(gitUrl: string): RepositoryInfo {
-		// Handle various Git URL formats
-		// Examples:
-		// - https://github.com/username/repo.git
-		// - git@github.com:username/repo.git
-		// - https://github.com/username/repo
-		// - github.com/username/repo
-		// - https://gitlab.com/username/repo.git
-		// - git@gitlab.com:username/repo.git
-
 		let owner: string | undefined;
 		let name: string | undefined;
 		let description: string = "";
 
-		// Remove .git suffix if present
 		const cleanUrl: string = gitUrl.replace(/\.git$/i, "");
 
-		// Try to match GitHub/GitLab/Bitbucket patterns
-		const patterns: Array<RegExp> = [
-			// HTTPS URLs
-			/https?:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/([\w-]+)\/([\w.-]+)/i,
-			// SSH URLs
-			/git@(github|gitlab|bitbucket)\.(?:com|org):\/?([\w-]+)\/([\w.-]+)/i,
-			// Short format
-			/(github|gitlab|bitbucket)\.(?:com|org)\/([\w-]+)\/([\w.-]+)/i,
-		];
+		const patterns: Array<RegExp> = [/https?:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/([\w-]+)\/([\w.-]+)/i, /git@(github|gitlab|bitbucket)\.(?:com|org):\/?([\w-]+)\/([\w.-]+)/i, /(github|gitlab|bitbucket)\.(?:com|org)\/([\w-]+)\/([\w.-]+)/i];
 
 		for (const pattern of patterns) {
 			const match: null | RegExpExecArray = pattern.exec(cleanUrl);
@@ -268,7 +426,6 @@ export class GenerateReadmeCommand {
 			}
 		}
 
-		// If no patterns matched, try to extract from generic URL
 		if (!owner || !name) {
 			const urlParts: Array<string> = cleanUrl.split("/");
 
@@ -280,7 +437,6 @@ export class GenerateReadmeCommand {
 			}
 		}
 
-		// Create RepositoryInfo with extracted data
 		return new RepositoryInfo({
 			codeStats: "",
 			defaultBranch: "main",
@@ -301,11 +457,10 @@ export class GenerateReadmeCommand {
 		let changelogContent: string | undefined;
 		let projectContext: string | undefined;
 
-		// Try to read CHANGELOG from the project directory
 		const changelogPaths: Array<string> = ["CHANGELOG.md", "CHANGELOG", "changelog.md"];
 
-		for (const path of changelogPaths) {
-			const fullPath: string = this.FILE_SYSTEM.joinPath(projectPath, path);
+		for (const changePath of changelogPaths) {
+			const fullPath: string = this.FILE_SYSTEM.joinPath(projectPath, changePath);
 
 			if (await this.FILE_SYSTEM.exists(fullPath)) {
 				changelogContent = await this.FILE_SYSTEM.readFile(fullPath);
@@ -314,9 +469,7 @@ export class GenerateReadmeCommand {
 			}
 		}
 
-		// Ask for additional context
 		if (useExistingConfig && existingConfig.contextTemplate !== undefined) {
-			// Use saved context (even if empty string)
 			projectContext = existingConfig.contextTemplate;
 
 			if (projectContext) {
@@ -328,17 +481,70 @@ export class GenerateReadmeCommand {
 			const hasContext: boolean = await this.CLI_INTERFACE.confirm("Would you like to provide additional project context?");
 
 			if (hasContext) {
-				projectContext = await this.CLI_INTERFACE.prompt(
-					"Enter project context (purpose, features, etc.):",
-					existingConfig.contextTemplate, // Use config value as default
-				);
+				projectContext = await this.CLI_INTERFACE.prompt("Enter project context (purpose, features, etc.):", existingConfig.contextTemplate);
 			} else {
-				// Set to empty string so we save the preference
 				projectContext = "";
 			}
 		}
 
 		return { changelogContent, projectContext };
+	}
+
+	/**
+	 * Generate a directory tree string for the project
+	 * @param {string} projectPath - The project directory path
+	 * @param {number} maxDepth - Maximum depth (default 3)
+	 * @returns {Promise<string>} The directory tree string
+	 */
+	private async generateDirectoryTree(projectPath: string, maxDepth: number = DEFAULT_SCAN_DEPTH): Promise<string> {
+		const lines: Array<string> = [];
+		const rootName: string = path.basename(projectPath);
+		lines.push(`${rootName}/`);
+
+		const ignoreDirectoryNames: Set<string> = new Set<string>(DIRECTORY_TREE_IGNORE);
+
+		const walkDirectory = async (directory: string, prefix: string, depth: number): Promise<void> => {
+			if (depth > maxDepth) return;
+
+			try {
+				const directoryEntries: Array<Dirent> = await fs.readdir(directory, { withFileTypes: true });
+
+				const filteredEntries: Array<Dirent> = directoryEntries
+					.filter((item: Dirent) => !item.name.startsWith(".") || item.name === ".github")
+					.filter((item: Dirent) => !ignoreDirectoryNames.has(item.name))
+					.sort((first: Dirent, second: Dirent) => {
+						// Directories first
+						if (first.isDirectory() && !second.isDirectory()) return -1;
+
+						if (!first.isDirectory() && second.isDirectory()) return 1;
+
+						return first.name.localeCompare(second.name);
+					});
+
+				for (let index: number = 0; index < filteredEntries.length; index++) {
+					const currentEntry: Dirent | undefined = filteredEntries[index];
+
+					if (!currentEntry) continue;
+
+					const isLast: boolean = index === filteredEntries.length - 1;
+					const connector: string = isLast ? "└── " : "├── ";
+					const childPrefix: string = isLast ? "    " : "│   ";
+
+					if (currentEntry.isDirectory()) {
+						lines.push(`${prefix}${connector}${currentEntry.name}/`);
+						await walkDirectory(path.join(directory, currentEntry.name), prefix + childPrefix, depth + 1);
+					} else {
+						lines.push(`${prefix}${connector}${currentEntry.name}`);
+					}
+				}
+			} catch {
+				// Ignore permission errors
+			}
+		};
+
+		await walkDirectory(projectPath, "", 1);
+
+		return lines.join("\n");
 	}
 
 	/**
@@ -349,7 +555,7 @@ export class GenerateReadmeCommand {
 	 * @returns {Promise<{ logoType: ELogoType; logoUrl?: string }>} Logo configuration
 	 */
 	private async handleLogoGeneration(existingConfig: IConfig, useExistingConfig: boolean, repositoryInfo: RepositoryInfo): Promise<{ logoType: ELogoType; logoUrl?: string }> {
-		const logoOptions: Array<ISelectOption> = [
+		const logoOptions: Array<ICliInterfaceServiceSelectOptions> = [
 			{ label: "Socialify (GitHub project card)", value: ELogoType.SOCIALIFY },
 			{ label: "Generate locally (gradient style)", value: ELogoType.LOCAL },
 			{ label: "Use custom URL", value: ELogoType.CUSTOM },
@@ -363,27 +569,21 @@ export class GenerateReadmeCommand {
 			logoUrl = existingConfig.logoUrl;
 			this.CLI_INTERFACE.info(`📌 Using saved logo preference: ${logoType}`);
 		} else {
-			logoType = (await this.CLI_INTERFACE.select("How would you like to generate the project logo?", logoOptions)) as ELogoType;
+			logoType = await this.CLI_INTERFACE.select("How would you like to generate the project logo?", logoOptions);
 		}
 
 		if (logoType === ELogoType.CUSTOM && !logoUrl) {
-			logoUrl = await this.CLI_INTERFACE.prompt(
-				"Enter the custom logo URL:",
-				existingConfig.logoUrl, // Use config value as default
-			);
+			logoUrl = await this.CLI_INTERFACE.prompt("Enter the custom logo URL:", existingConfig.logoUrl);
 		} else if (logoType === ELogoType.LOCAL) {
 			this.CLI_INTERFACE.info("🎨 Generating logo locally...");
 
 			try {
-				// Generate the logo
 				const logoBuffer: Buffer = await this.LOGO_GENERATOR_SERVICE.generateLogo(repositoryInfo.getName());
 
-				// Save locally for preview
 				const localLogoPath: string = "generated-logo.png";
 				await fs.writeFile(localLogoPath, logoBuffer);
 				this.CLI_INTERFACE.success(`✅ Logo saved locally as ${localLogoPath}`);
 
-				// Try to upload to ImageShare
 				try {
 					this.CLI_INTERFACE.info("📤 Uploading logo to ImageShare...");
 					const fileName: string = `${repositoryInfo.getName()}-logo-${Date.now()}.png`;
@@ -392,7 +592,6 @@ export class GenerateReadmeCommand {
 				} catch (uploadError) {
 					this.CLI_INTERFACE.error(`⚠️  Failed to upload logo: ${uploadError instanceof Error ? uploadError.message : "Unknown error"}`);
 
-					// Ask if user wants to continue with local file or provide URL manually
 					const shouldContinueWithSocialify: boolean = await this.CLI_INTERFACE.confirm("Upload failed. Would you like to continue with Socialify instead?");
 
 					if (shouldContinueWithSocialify) {
@@ -405,7 +604,6 @@ export class GenerateReadmeCommand {
 				}
 			} catch (error) {
 				this.CLI_INTERFACE.error(`Failed to generate logo: ${error instanceof Error ? error.message : "Unknown error"}`);
-				// Fall back to Socialify
 				logoType = ELogoType.SOCIALIFY;
 			}
 		}
@@ -422,42 +620,22 @@ export class GenerateReadmeCommand {
 	 */
 	private async handleRepositoryOwner(repositoryInfo: RepositoryInfo, existingConfig: IConfig, useExistingConfig: boolean): Promise<RepositoryInfo> {
 		if (!repositoryInfo.getOwner()) {
-			// First check if we have a default owner in config
 			const configOwner: string | undefined = existingConfig.repositoryOwner;
 
 			if (configOwner && useExistingConfig) {
-				// Use the configured owner
-				const finalRepositoryInfo: RepositoryInfo = new RepositoryInfo({
-					codeStats: repositoryInfo.getCodeStats(),
-					defaultBranch: repositoryInfo.getDefaultBranch(),
-					description: repositoryInfo.getDescription(),
-					name: repositoryInfo.getName(),
-					owner: configOwner,
-				});
-
 				this.CLI_INTERFACE.info(`📌 Using saved repository owner: ${configOwner}`);
 
-				return finalRepositoryInfo;
+				return repositoryInfo.withOwner(configOwner);
 			} else {
 				this.CLI_INTERFACE.info("⚠️  Could not determine repository owner from git remote or package.json");
 
 				const shouldProvideOwner: boolean = await this.CLI_INTERFACE.confirm("Would you like to provide the GitHub username/organization? (Required for proper Socialify image generation)");
 
 				if (shouldProvideOwner) {
-					const owner: string = await this.CLI_INTERFACE.prompt(
-						"Enter GitHub username or organization:",
-						configOwner, // Use config value as default
-					);
+					const owner: string = await this.CLI_INTERFACE.prompt("Enter GitHub username or organization:", configOwner);
 
 					if (owner && typeof owner === "string" && owner.trim()) {
-						// Create a new RepositoryInfo with the provided owner
-						return new RepositoryInfo({
-							codeStats: repositoryInfo.getCodeStats(),
-							defaultBranch: repositoryInfo.getDefaultBranch(),
-							description: repositoryInfo.getDescription(),
-							name: repositoryInfo.getName(),
-							owner: owner.trim(),
-						});
+						return repositoryInfo.withOwner(owner.trim());
 					}
 				}
 			}
@@ -476,16 +654,13 @@ export class GenerateReadmeCommand {
 		let repoSource: string;
 
 		if (useExistingConfig && existingConfig.repositorySource) {
-			// Use saved repository source preference
 			repoSource = existingConfig.repositorySource;
 			this.CLI_INTERFACE.info(`📌 Using saved repository source: ${repoSource === "local" ? "current directory" : "Git URL"}`);
 		} else if (useExistingConfig) {
-			// Using saved config but repositorySource is not saved (old config)
-			// Default to local repository
 			repoSource = "local";
 			this.CLI_INTERFACE.info(`📌 Using default repository source: current directory`);
 		} else {
-			const repoSourceOptions: Array<ISelectOption> = [
+			const repoSourceOptions: Array<ICliInterfaceServiceSelectOptions> = [
 				{ label: "Use current directory (local repository)", value: "local" },
 				{ label: "Provide Git repository URL", value: "remote" },
 			];
@@ -498,7 +673,6 @@ export class GenerateReadmeCommand {
 		let clonedRepoPath: string | undefined;
 
 		if (repoSource === "remote") {
-			// Get Git URL from user with validation
 			const gitUrl: string = await this.CLI_INTERFACE.prompt("Enter Git repository URL (e.g., https://github.com/username/repo.git):", undefined, (value: string) => {
 				if (!this.isValidGitUrl(value)) {
 					return "❌ Invalid Git repository URL. Supported formats: https://github.com/username/repo.git, git@github.com:username/repo.git";
@@ -507,10 +681,8 @@ export class GenerateReadmeCommand {
 				return true;
 			});
 
-			// Extract repository info from URL
 			repositoryInfo = this.extractRepoInfoFromUrl(gitUrl);
 
-			// Always clone repository for file scanning
 			this.CLI_INTERFACE.info("🔄 Cloning repository...");
 
 			try {
@@ -518,14 +690,12 @@ export class GenerateReadmeCommand {
 				projectPath = clonedRepoPath;
 				this.CLI_INTERFACE.success(`✅ Repository cloned successfully`);
 
-				// Try to get more accurate repository info from the cloned repo
 				const originalCwd: string = process.cwd();
 
 				try {
 					process.chdir(clonedRepoPath);
 					const clonedRepoInfo: RepositoryInfo = await this.GIT_REPOSITORY.getRepositoryInfo();
 
-					// Merge the information, preferring cloned repo info but keeping URL-extracted owner if needed
 					repositoryInfo = new RepositoryInfo({
 						codeStats: clonedRepoInfo.getCodeStats() || repositoryInfo.getCodeStats(),
 						defaultBranch: clonedRepoInfo.getDefaultBranch() || repositoryInfo.getDefaultBranch(),
@@ -542,7 +712,6 @@ export class GenerateReadmeCommand {
 				throw error;
 			}
 		} else {
-			// Use local repository
 			const isGitRepo: boolean = await this.GIT_REPOSITORY.isGitRepository();
 
 			if (!isGitRepo) {
@@ -554,7 +723,6 @@ export class GenerateReadmeCommand {
 				}
 			}
 
-			// Get repository info from local directory
 			repositoryInfo = await this.GIT_REPOSITORY.getRepositoryInfo();
 		}
 
@@ -571,21 +739,8 @@ export class GenerateReadmeCommand {
 			return false;
 		}
 
-		// Common Git URL patterns
-		const patterns: Array<RegExp> = [
-			// HTTPS URLs
-			/^https?:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/[\w-]+\/[\w.-]+$/i,
-			// SSH URLs
-			/^git@(github|gitlab|bitbucket)\.(?:com|org):\S[^\s/]*\/\S+$/i,
-			// Git protocol
-			/^git:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/[\w-]+\/[\w.-]+$/i,
-			// Generic HTTPS Git URL (for self-hosted)
-			/^https?:\/\/\S[^\s/]*\/\S[^\s/]*\/\S+$/i,
-			// Generic SSH URL (for self-hosted)
-			/^[\w-]+@[\w.-]+:[\w-]+\/[\w.-]+$/,
-		];
+		const patterns: Array<RegExp> = [/^https?:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/[\w-]+\/[\w.-]+$/i, /^git@(github|gitlab|bitbucket)\.(?:com|org):\S[^\s/]*\/\S+$/i, /^git:\/\/(?:www\.)?(github|gitlab|bitbucket)\.(?:com|org)\/[\w-]+\/[\w.-]+$/i, /^https?:\/\/\S[^\s/]*\/\S[^\s/]*\/\S+$/i, /^[\w-]+@[\w.-]+:[\w-]+\/[\w.-]+$/];
 
-		// Check if URL matches any pattern
 		return patterns.some((pattern: RegExp) => pattern.test(gitUrl.trim()));
 	}
 
@@ -603,7 +758,6 @@ export class GenerateReadmeCommand {
 
 			this.CLI_INTERFACE.info(`📁 Found ${filePaths.length} files to analyze`);
 
-			// Read file contents with size limits
 			let totalSize: number = 0;
 
 			const scannedFiles: Array<{ content: string; path: string; size: number }> = [];
@@ -635,7 +789,6 @@ export class GenerateReadmeCommand {
 						size: stats.size,
 					});
 				} catch {
-					// Skip files that can't be read
 					this.CLI_INTERFACE.info(`⚠️  Could not read file: ${filePath}`);
 				}
 			}
@@ -657,7 +810,7 @@ export class GenerateReadmeCommand {
 	 * @returns {Promise<string>} Selected language
 	 */
 	private async selectLanguage(existingConfig: IConfig, useExistingConfig: boolean): Promise<string> {
-		const languages: Array<ISelectOption> = [
+		const languages: Array<ICliInterfaceServiceSelectOptions> = [
 			{ label: "English", value: "en" },
 			{ label: "Spanish", value: "es" },
 			{ label: "French", value: "fr" },

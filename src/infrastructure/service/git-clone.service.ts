@@ -1,6 +1,6 @@
 import type { Stats } from "node:fs";
 
-import type { IGitCloneService } from "../../application/interface/git-clone-service.interface.js";
+import type { IGitCloneService } from "../../application/interface/git-clone-service.interface";
 
 import { exec } from "node:child_process";
 import * as fs from "node:fs/promises";

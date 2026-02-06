@@ -1,13 +1,13 @@
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import OpenAI from "openai";
 
-import { DEFAULT_TEMPERATURE, OPENAI_MAX_TOKENS } from "../../domain/constant/numeric.constant.js";
+import { DEFAULT_TEMPERATURE, OPENAI_MAX_TOKENS } from "../../domain/constant/numeric.constant";
 
 /**
  * Azure OpenAI implementation of the LLM service

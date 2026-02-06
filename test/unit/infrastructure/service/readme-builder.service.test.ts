@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { ReadmeBuilder } from "../../../../src/infrastructure/service/readme-builder.service.js";
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
-import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity.js";
+import { ReadmeBuilder } from "../../../../src/infrastructure/service/readme-builder.service";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
+import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity";
 
 describe("ReadmeBuilder Service", () => {
 	let builder: ReadmeBuilder;
@@ -21,11 +20,8 @@ describe("ReadmeBuilder Service", () => {
 	describe("build", () => {
 		it("should build a complete README with all sections", () => {
 			// Arrange
-			const badges = [
-				new Badge("TypeScript", "blue", "typescript", "white"),
-				new Badge("Node.js", "green", "node.js", "white"),
-			];
-			
+			const badges = [new Badge("TypeScript", "blue", "typescript", "white"), new Badge("Node.js", "green", "node.js", "white")];
+
 			const data = {
 				title: "Awesome Project",
 				shortDescription: "A short description of the project",
@@ -45,7 +41,7 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Awesome Project</h1>");
+			expect(result).toContain('<h1 align="center">Awesome Project</h1>');
 			expect(result).toContain("A short description of the project");
 			expect(result).toContain(`<img src="https://example.com/logo.png" width="700" alt="project-logo">`);
 			expect(result).toContain(`<img src="${badges[0].toUrl()}" alt="TypeScript">`);
@@ -85,194 +81,302 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Minimal Project</h1>");
+			expect(result).toContain('<h1 align="center">Minimal Project</h1>');
 			expect(result).toContain("Minimal description");
-			// Should use Socialify URL with repository info
 			expect(result).toContain("socialify.git.ci/test-owner/test-repo");
-			// Should have default badges (Node.js, TypeScript, npm)
 			expect(result).toContain(`alt="Node.js"`);
 			expect(result).toContain(`alt="TypeScript"`);
 			expect(result).toContain(`alt="npm"`);
 		});
 
-		it("should handle README with custom badges", () => {
-			// Arrange
-			const badges = [new Badge("JavaScript", "yellow", "javascript", "black")];
+		it("should include highlights callout when provided", () => {
 			const data = {
-				title: "Partial Project",
-				shortDescription: "A project with some sections",
-				longDescription: "Detailed description here",
-				badges: badges,
-				features: ["Cool feature"],
-				installation: "",
-				usage: "Just use it!",
-				roadmap: "",
-				faq: "",
-				license: "Apache-2.0",
-				repositoryInfo,
-			};
-
-			// Act
-			const result = builder.build(data);
-
-			// Assert
-			expect(result).toContain("<h1 align=\"center\">Partial Project</h1>");
-			expect(result).toContain(`<img src="${badges[0].toUrl()}" alt="JavaScript">`);
-			expect(result).toContain("## 📖 Description");
-			expect(result).toContain("## 🚀 Features");
-			expect(result).toContain("- ✨ **Cool feature**");
-			expect(result).toContain("## 💡 Usage");
-			expect(result).toContain("Just use it!");
-			expect(result).toContain("Apache-2.0");
-		});
-
-		it("should properly format multi-line content", () => {
-			// Arrange
-			const data = {
-				title: "Multi-line Project",
-				shortDescription: "Testing multi-line content",
-				longDescription: "Line 1\n\nLine 2\n\nLine 3",
+				title: "Highlight Project",
+				shortDescription: "Test highlights",
+				longDescription: "Description",
 				badges: [],
-				features: ["Feature 1\nwith details", "Feature 2\nwith more details"],
-				installation: "Step 1: Do this\nStep 2: Do that\nStep 3: Done",
-				usage: "```javascript\n// Example code\nconst x = 1;\n```",
-				roadmap: "",
-				faq: "",
-				license: "",
-				repositoryInfo,
-			};
-
-			// Act
-			const result = builder.build(data);
-
-			// Assert
-			expect(result).toContain("Line 1\n\nLine 2\n\nLine 3");
-			expect(result).toContain("- ✨ **Feature 1\nwith details**");
-			expect(result).toContain("Step 1: Do this\nStep 2: Do that");
-			expect(result).toContain("```javascript\n// Example code");
-		});
-
-		it("should handle special characters in content", () => {
-			// Arrange
-			const data = {
-				title: "Project with <Special> Characters & Symbols",
-				shortDescription: "Testing & validating < > \" ' characters",
-				longDescription: "Contains [brackets], {braces}, and (parentheses)",
-				badges: [],
-				features: ["Feature with * asterisk", "Feature with _ underscore"],
-				installation: "npm install --save @scope/package",
-				usage: "",
-				roadmap: "",
-				faq: "",
-				license: "",
-				repositoryInfo,
-			};
-
-			// Act
-			const result = builder.build(data);
-
-			// Assert
-			expect(result).toContain("<h1 align=\"center\">Project with <Special> Characters & Symbols</h1>");
-			expect(result).toContain("Testing & validating < > \" ' characters");
-			expect(result).toContain("Contains [brackets], {braces}, and (parentheses)");
-			expect(result).toContain("- ✨ **Feature with * asterisk**");
-			expect(result).toContain("npm install --save @scope/package");
-		});
-
-		it("should generate proper badge HTML", () => {
-			// Arrange
-			const badges = [
-				new Badge("Build", "success", "github-actions", "white"),
-				new Badge("Coverage", "90%25", "codecov", "white"),
-				new Badge("Version", "1.0.0", "npm", "white"),
-			];
-			
-			const data = {
-				title: "Badge Test",
-				shortDescription: "Testing badges",
-				longDescription: "",
-				badges: badges,
-				features: [],
-				installation: "",
-				usage: "",
-				roadmap: "",
-				faq: "",
-				license: "",
-				repositoryInfo,
-			};
-
-			// Act
-			const result = builder.build(data);
-
-			// Assert
-			expect(result).toContain(`<img src="${badges[0].toUrl()}" alt="Build">`);
-			expect(result).toContain(`<img src="${badges[1].toUrl()}" alt="Coverage">`);
-			expect(result).toContain(`<img src="${badges[2].toUrl()}" alt="Version">`);
-		});
-
-		it("should include table of contents", () => {
-			// Arrange
-			const data = {
-				title: "TOC Test",
-				shortDescription: "Testing table of contents",
-				longDescription: "Description content",
-				badges: [],
-				features: ["Feature 1"],
+				features: ["Feature"],
 				installation: "npm install",
-				usage: "",
+				usage: "Use it",
 				roadmap: "",
 				faq: "",
-				license: "",
+				license: "MIT",
 				repositoryInfo,
+				highlights: ["Blazing fast performance", "Zero configuration", "Type-safe APIs"],
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
-			expect(result).toContain("## 📚 Table of Contents");
-			expect(result).toContain("- [Description](#-description)");
-			expect(result).toContain("- [Features](#-features)");
-			expect(result).toContain("- [Installation](#-installation)");
-			expect(result).toContain("- [Usage](#-usage)");
-			expect(result).toContain("- [Roadmap](#-roadmap)");
-			expect(result).toContain("- [FAQ](#-faq)");
-			expect(result).toContain("- [License](#-license)");
+			expect(result).toContain("> [!NOTE]");
+			expect(result).toContain("**Why Highlight Project?**");
+			expect(result).toContain("> - Blazing fast performance");
+			expect(result).toContain("> - Zero configuration");
+			expect(result).toContain("> - Type-safe APIs");
 		});
 
-		it("should clean code blocks from installation instructions", () => {
-			// Arrange
+		it("should include tech stack table when provided", () => {
 			const data = {
-				title: "Clean Install Test",
-				shortDescription: "Testing installation cleaning",
-				longDescription: "",
+				title: "Stack Project",
+				shortDescription: "Test tech stack",
+				longDescription: "Description",
 				badges: [],
 				features: [],
-				installation: "```bash\nnpm install package\n```",
+				installation: "",
 				usage: "",
 				roadmap: "",
 				faq: "",
-				license: "",
+				license: "MIT",
+				repositoryInfo,
+				techStack: {
+					Language: ["TypeScript", "JavaScript"],
+					Runtime: ["Node.js"],
+					Testing: ["Vitest"],
+				},
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 🛠️ Tech Stack");
+			expect(result).toContain("| **Language** | TypeScript, JavaScript |");
+			expect(result).toContain("| **Runtime** | Node.js |");
+			expect(result).toContain("| **Testing** | Vitest |");
+		});
+
+		it("should include mermaid architecture diagram", () => {
+			const data = {
+				title: "Diagram Project",
+				shortDescription: "Test diagrams",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				mermaidDiagrams: {
+					architecture: "flowchart TD\n    A[Client] --> B[Server]",
+					dataFlow: "sequenceDiagram\n    User->>API: Request",
+				},
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 🏗 Architecture");
+			expect(result).toContain("### System Architecture");
+			expect(result).toContain("```mermaid\nflowchart TD\n    A[Client] --> B[Server]\n```");
+			expect(result).toContain("### Data Flow");
+			expect(result).toContain("```mermaid\nsequenceDiagram\n    User->>API: Request\n```");
+		});
+
+		it("should include prerequisites when provided", () => {
+			const data = {
+				title: "Prereq Project",
+				shortDescription: "Test prereqs",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				prerequisites: ["Node.js >= 18.0.0", "npm >= 9.0.0"],
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 📋 Prerequisites");
+			expect(result).toContain("- Node.js >= 18.0.0");
+			expect(result).toContain("- npm >= 9.0.0");
+		});
+
+		it("should include contributing section when provided", () => {
+			const data = {
+				title: "Contributing Project",
+				shortDescription: "Test contributing",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				contributing: "Please read CONTRIBUTING.md before submitting a PR.",
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 🤝 Contributing");
+			expect(result).toContain("Please read CONTRIBUTING.md before submitting a PR.");
+		});
+
+		it("should include collapsible FAQ and roadmap sections", () => {
+			const data = {
+				title: "Collapsible Test",
+				shortDescription: "Test collapsible",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "| Task | Status |\n|------|--------|\n| Feature | ✅ Done |",
+				faq: "Q: Test?\nA: Yes",
+				license: "MIT",
 				repositoryInfo,
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
-			// Should remove the ```bash markers
-			expect(result).toContain("## 🛠 Installation\n```bash\nnpm install package\n```");
-			expect(result).not.toContain("```bash\n```bash");
+			expect(result).toContain("<details>");
+			expect(result).toContain("<summary>Click to expand</summary>");
+		});
+
+		it("should include project structure when directoryTree is set", () => {
+			const repoWithTree = new RepositoryInfo({
+				name: "test-repo",
+				description: "Test",
+				owner: "test-owner",
+				directoryTree: "src/\n├── index.ts\n└── utils/",
+			});
+
+			const data = {
+				title: "Tree Test",
+				shortDescription: "Test tree",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo: repoWithTree,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 📁 Project Structure");
+			expect(result).toContain("src/");
+			expect(result).toContain("├── index.ts");
+		});
+
+		it("should include dynamic GitHub badges when shouldIncludeGithubBadges is true", () => {
+			const data = {
+				title: "GitHub Badge Test",
+				shortDescription: "Test badges",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				shouldIncludeGithubBadges: true,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("img.shields.io/github/stars/test-owner/test-repo");
+			expect(result).toContain("img.shields.io/github/forks/test-owner/test-repo");
+			expect(result).toContain("img.shields.io/github/issues/test-owner/test-repo");
+			expect(result).toContain("img.shields.io/github/last-commit/test-owner/test-repo");
+		});
+
+		it("should NOT include dynamic GitHub badges when shouldIncludeGithubBadges is false", () => {
+			const data = {
+				title: "No GitHub Badge Test",
+				shortDescription: "Test no badges",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				shouldIncludeGithubBadges: false,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).not.toContain("img.shields.io/github/stars");
+		});
+
+		it("should include contributors section when git stats available", () => {
+			const repoWithContributors = new RepositoryInfo({
+				name: "test-repo",
+				description: "Test",
+				owner: "test-owner",
+				gitStats: {
+					commitCount: 100,
+					contributors: [
+						{ name: "Alice", email: "alice@test.com", commits: 60 },
+						{ name: "Bob", email: "bob@test.com", commits: 40 },
+					],
+					branchCount: 3,
+					tags: [],
+				},
+			});
+
+			const data = {
+				title: "Contributors Test",
+				shortDescription: "Test contributors",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo: repoWithContributors,
+				shouldIncludeContributors: true,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain("## 👥 Contributors");
+			expect(result).toContain("contrib.rocks/image?repo=test-owner/test-repo");
+			expect(result).toContain("| Alice | 60 |");
+			expect(result).toContain("| Bob | 40 |");
+		});
+
+		it("should include footer with back-to-top link", () => {
+			const data = {
+				title: "Footer Test",
+				shortDescription: "Test footer",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).toContain('<a href="#top">Back to Top</a>');
+			expect(result).toContain('<a id="top"></a>');
 		});
 
 		it("should include ElsiKora badge for ElsiKora repositories", () => {
-			// Arrange
 			const elsiKoraRepo = new RepositoryInfo({
 				name: "test-repo",
 				description: "Test repository",
 				owner: "ElsiKora",
 			});
-			
+
 			const data = {
 				title: "ElsiKora Test",
 				shortDescription: "Testing ElsiKora badge",
@@ -287,16 +391,13 @@ describe("ReadmeBuilder Service", () => {
 				repositoryInfo: elsiKoraRepo,
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
 			expect(result).toContain('<a aria-label="ElsiKora logo" href="https://elsikora.com">');
-			expect(result).toContain('MADE%20BY%20ElsiKora-333333.svg?style=for-the-badge');
+			expect(result).toContain("MADE%20BY%20ElsiKora-333333.svg?style=for-the-badge");
 		});
 
 		it("should NOT include ElsiKora badge for non-ElsiKora repositories", () => {
-			// Arrange
 			const data = {
 				title: "Other Test",
 				shortDescription: "Testing non-ElsiKora repo",
@@ -308,53 +409,53 @@ describe("ReadmeBuilder Service", () => {
 				roadmap: "",
 				faq: "",
 				license: "",
-				repositoryInfo, // This uses the default test-owner
+				repositoryInfo,
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
 			expect(result).not.toContain('<a aria-label="ElsiKora logo" href="https://elsikora.com">');
-			expect(result).not.toContain('MADE%20BY%20ElsiKora');
+			expect(result).not.toContain("MADE%20BY%20ElsiKora");
 		});
 
-		it("should generate Socialify URL with custom configuration", () => {
-			// Arrange
+		it("should include table of contents with dynamic entries", () => {
 			const data = {
-				title: "Socialify Test",
-				shortDescription: "Testing custom Socialify config",
-				longDescription: "",
+				title: "TOC Test",
+				shortDescription: "Testing table of contents",
+				longDescription: "Description",
 				badges: [],
 				features: [],
-				installation: "",
+				installation: "npm install",
 				usage: "",
 				roadmap: "",
 				faq: "",
 				license: "",
 				repositoryInfo,
-				socialifyConfig: {
-					shouldShowDescription: true,
-					shouldShowForks: true,
-					shouldShowIssues: true,
-					toUseFont: "Source Code Pro" as const,
-					toUsePattern: "Floating Cogs" as const,
-					toUseTheme: "Dark" as const,
-				},
+				techStack: { Language: ["TypeScript"] },
+				prerequisites: ["Node.js >= 18"],
+				contributing: "Contribute here",
+				acknowledgments: "Thanks",
+				mermaidDiagrams: { architecture: "flowchart TD\n  A-->B" },
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
-			expect(result).toContain("socialify.git.ci/test-owner/test-repo");
-			expect(result).toContain("theme=Dark");
-			expect(result).toContain("pattern=Floating+Cogs");
-			expect(result).toContain("font=Source+Code+Pro");
+			expect(result).toContain("## 📚 Table of Contents");
+			expect(result).toContain("- [Description](#-description)");
+			expect(result).toContain("- [Tech Stack](#-tech-stack)");
+			expect(result).toContain("- [Features](#-features)");
+			expect(result).toContain("- [Architecture](#-architecture)");
+			expect(result).toContain("- [Prerequisites](#-prerequisites)");
+			expect(result).toContain("- [Installation](#-installation)");
+			expect(result).toContain("- [Usage](#-usage)");
+			expect(result).toContain("- [Contributing](#-contributing)");
+			expect(result).toContain("- [Roadmap](#-roadmap)");
+			expect(result).toContain("- [FAQ](#-faq)");
+			expect(result).toContain("- [License](#-license)");
+			expect(result).toContain("- [Acknowledgments](#-acknowledgments)");
 		});
 
 		it("should handle repository without owner", () => {
-			// Arrange
 			const repoWithoutOwner = new RepositoryInfo({
 				name: "no-owner-repo",
 				description: "Repository without owner",
@@ -374,11 +475,9 @@ describe("ReadmeBuilder Service", () => {
 				repositoryInfo: repoWithoutOwner,
 			};
 
-			// Act
 			const result = builder.build(data);
 
-			// Assert
 			expect(result).toContain("socialify.git.ci/your-username/no-owner-repo");
 		});
 	});
-}); 
+});

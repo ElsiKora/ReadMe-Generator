@@ -9,26 +9,33 @@ import { join } from "path";
  */
 export async function createTestRepo(): Promise<string> {
 	const testRepoPath = join(tmpdir(), `readme-generator-test-${Date.now()}`);
-	
+
 	// Create directory
 	mkdirSync(testRepoPath, { recursive: true });
-	
+
 	// Initialize git repo
 	execSync("git init", { cwd: testRepoPath });
 	execSync('git config user.email "test@example.com"', { cwd: testRepoPath });
 	execSync('git config user.name "Test User"', { cwd: testRepoPath });
-	
+
 	// Create initial commit
-	writeFileSync(join(testRepoPath, "package.json"), JSON.stringify({
-		name: "test-project",
-		version: "1.0.0",
-		description: "Test project for README generator",
-		license: "MIT",
-	}, null, 2));
-	
+	writeFileSync(
+		join(testRepoPath, "package.json"),
+		JSON.stringify(
+			{
+				name: "test-project",
+				version: "1.0.0",
+				description: "Test project for README generator",
+				license: "MIT",
+			},
+			null,
+			2,
+		),
+	);
+
 	execSync("git add .", { cwd: testRepoPath });
 	execSync('git commit -m "Initial commit"', { cwd: testRepoPath });
-	
+
 	return testRepoPath;
 }
 
@@ -64,23 +71,16 @@ export async function stageFiles(repoPath: string, files: Record<string, string>
  * @param {Record<string, string>} env - Environment variables
  * @returns {Promise<{stdout: string; stderr: string; exitCode: number}>} CLI output
  */
-export async function runCli(
-	cwd: string,
-	input: string = "",
-	env: Record<string, string> = {}
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+export async function runCli(cwd: string, input: string = "", env: Record<string, string> = {}): Promise<{ stdout: string; stderr: string; exitCode: number }> {
 	try {
 		const cliPath = join(process.cwd(), "bin", "index.js");
-		const result = execSync(
-			`echo "${input}" | node ${cliPath}`,
-			{
-				cwd,
-				encoding: "utf8",
-				env: { ...process.env, ...env },
-				stdio: ["pipe", "pipe", "pipe"],
-			}
-		);
-		
+		const result = execSync(`echo "${input}" | node ${cliPath}`, {
+			cwd,
+			encoding: "utf8",
+			env: { ...process.env, ...env },
+			stdio: ["pipe", "pipe", "pipe"],
+		});
+
 		return {
 			stdout: result.toString(),
 			stderr: "",
@@ -102,27 +102,20 @@ export async function runCli(
  * @param {Record<string, string>} env - Environment variables
  * @returns {Promise<{stdout: string; stderr: string; exitCode: number}>} CLI output
  */
-export async function runCliWithAnswers(
-	cwd: string,
-	answers: (string | number)[],
-	env: Record<string, string> = {}
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+export async function runCliWithAnswers(cwd: string, answers: (string | number)[], env: Record<string, string> = {}): Promise<{ stdout: string; stderr: string; exitCode: number }> {
 	try {
 		const wrapperPath = join(process.cwd(), "test", "helpers", "test-cli-wrapper.js");
-		const result = execSync(
-			`node ${wrapperPath}`,
-			{
-				cwd,
-				encoding: "utf8",
-				env: { 
-					...process.env, 
-					...env,
-					PROMPT_INJECT_ANSWERS: JSON.stringify(answers)
-				},
-				stdio: ["pipe", "pipe", "pipe"],
-			}
-		);
-		
+		const result = execSync(`node ${wrapperPath}`, {
+			cwd,
+			encoding: "utf8",
+			env: {
+				...process.env,
+				...env,
+				PROMPT_INJECT_ANSWERS: JSON.stringify(answers),
+			},
+			stdio: ["pipe", "pipe", "pipe"],
+		});
+
 		return {
 			stdout: result.toString(),
 			stderr: "",
@@ -172,4 +165,4 @@ export function createTestEnv(overrides: Record<string, string> = {}): Record<st
 		CI: "true",
 		...overrides,
 	};
-} 
+}

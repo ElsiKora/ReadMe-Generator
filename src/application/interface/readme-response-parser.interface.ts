@@ -1,6 +1,6 @@
-import type { Readme } from "../../domain/index.js";
+import type { Readme } from "../../domain/index";
 
-import type { ILlmPromptContext } from "./llm-service.interface.js";
+import type { ILlmPromptContext } from "./llm-service.interface";
 
 /**
  * Interface for parsing LLM responses into README objects

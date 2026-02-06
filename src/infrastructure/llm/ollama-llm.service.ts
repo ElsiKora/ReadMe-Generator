@@ -1,16 +1,16 @@
 import type { AxiosResponse } from "axios";
 
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import axios from "axios";
 
-import { DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant.js";
-import { EOllamaModel } from "../../domain/enum/ollama-model.enum.js";
+import { DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant";
+import { EOllamaModel } from "../../domain/enum/ollama-model.enum";
 
 /**
  * Ollama implementation of the LLM service
@@ -33,7 +33,7 @@ export class OllamaLlmService implements ILlmService {
 	 */
 	async generateReadme(context: ILlmPromptContext, configuration: LLMConfiguration): Promise<Readme> {
 		const baseURL: string = configuration.getBaseUrl() ?? "http://localhost:11434";
-		const model: string = configuration.getModel() ?? EOllamaModel.LLAMA3_2;
+		const model: string = configuration.getModel() ?? EOllamaModel.LLAMA3_3;
 
 		const systemPrompt: string = this.PROMPT_BUILDER.buildSystemPrompt(context);
 		const userPrompt: string = this.PROMPT_BUILDER.buildUserPrompt(context);

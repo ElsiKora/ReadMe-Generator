@@ -1,13 +1,13 @@
 import { vi } from "vitest";
 
-import { RepositoryInfo } from "../../src/domain/entity/repository-info.entity.js";
-import { Badge } from "../../src/domain/value-object/badge.value-object.js";
-import { Readme } from "../../src/domain/entity/readme.entity.js";
-import { ELLMProvider } from "../../src/domain/enum/llm-provider.enum.js";
-import type { ILlmPromptContext } from "../../src/application/interface/llm-service.interface.js";
-import type { ICliInterfaceService } from "../../src/application/interface/cli-interface-service.interface.js";
-import type { IFileSystemService } from "../../src/application/interface/file-system-service.interface.js";
-import type { IGitRepository } from "../../src/application/interface/git-repository.interface.js";
+import { RepositoryInfo } from "../../src/domain/entity/repository-info.entity";
+import { Badge } from "../../src/domain/value-object/badge.value-object";
+import { Readme } from "../../src/domain/entity/readme.entity";
+import { ELLMProvider } from "../../src/domain/enum/llm-provider.enum";
+import type { ILlmPromptContext } from "../../src/application/interface/llm-service.interface";
+import type { ICliInterfaceService } from "../../src/application/interface/cli-interface-service.interface";
+import type { IFileSystemService } from "../../src/application/interface/file-system-service.interface";
+import type { IGitRepository } from "../../src/application/interface/git-repository.interface";
 
 /**
  * Creates a mock function with type safety
@@ -94,6 +94,7 @@ export function createMockCliInterface(): ICliInterfaceService {
 		confirm: vi.fn().mockResolvedValue(true),
 		error: vi.fn(),
 		info: vi.fn(),
+		password: vi.fn().mockResolvedValue("test-api-key"),
 		prompt: vi.fn().mockResolvedValue("test-input"),
 		select: vi.fn().mockResolvedValue("test-selection"),
 		success: vi.fn(),
@@ -105,14 +106,18 @@ export function createMockCliInterface(): ICliInterfaceService {
  */
 export function createMockFileSystemService(): IFileSystemService {
 	return {
-		readFile: vi.fn().mockResolvedValue("test file content"),
-		writeFile: vi.fn().mockResolvedValue(undefined),
+		createDirectory: vi.fn().mockResolvedValue(undefined),
 		exists: vi.fn().mockResolvedValue(true),
 		getCurrentDirectory: vi.fn().mockReturnValue("/test/directory"),
-		joinPath: vi.fn().mockImplementation((...segments) => segments.join("/")),
-		listFiles: vi.fn().mockResolvedValue(["src/index.ts", "package.json", "README.md"]),
-		isDirectory: vi.fn().mockResolvedValue(true),
+		getDirectoryNameFromFilePath: vi.fn().mockImplementation((filepath: string) => filepath.split("/").slice(0, -1).join("/")),
+		getExtensionFromFilePath: vi.fn().mockImplementation((filepath: string) => "." + (filepath.split(".").pop() ?? "")),
 		getFileStats: vi.fn().mockResolvedValue({ size: 1024 }),
+		isDirectory: vi.fn().mockResolvedValue(true),
+		isPathExists: vi.fn().mockResolvedValue(true),
+		joinPath: vi.fn().mockImplementation((...segments: Array<string>) => segments.join("/")),
+		listFiles: vi.fn().mockResolvedValue(["src/index.ts", "package.json", "README.md"]),
+		readFile: vi.fn().mockResolvedValue("test file content"),
+		writeFile: vi.fn().mockResolvedValue(undefined),
 	};
 }
 
@@ -121,6 +126,19 @@ export function createMockFileSystemService(): IFileSystemService {
  */
 export function createMockGitRepository(): IGitRepository {
 	return {
+		getExtendedPackageInfo: vi.fn().mockResolvedValue({
+			version: "1.0.0",
+			license: "MIT",
+			scripts: { build: "tsc", test: "vitest" },
+		}),
+		getGitStats: vi.fn().mockResolvedValue({
+			commitCount: 42,
+			contributors: [{ name: "Test User", email: "test@example.com", commits: 42 }],
+			branchCount: 3,
+			tags: ["v1.0.0"],
+			firstCommitDate: "2024-01-01",
+			lastCommitDate: "2024-12-01",
+		}),
 		getRepositoryInfo: vi.fn().mockResolvedValue(
 			new RepositoryInfo({
 				name: "mock-repo",
@@ -128,7 +146,7 @@ export function createMockGitRepository(): IGitRepository {
 				owner: "mock-owner",
 				defaultBranch: "main",
 				codeStats: "JavaScript: 100%",
-			})
+			}),
 		),
 		isGitRepository: vi.fn().mockResolvedValue(true),
 	};
@@ -145,4 +163,4 @@ export function createTestContext() {
 		llmConfiguration: createMockLLMConfiguration(),
 		llmPromptContext: createMockLlmPromptContext(),
 	};
-} 
+}

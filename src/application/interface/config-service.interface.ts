@@ -1,5 +1,5 @@
-import type { IConfig } from "./config.interface.js";
-import type { IFileSystemService } from "./file-system-service.interface.js";
+import type { IConfig } from "./config.interface";
+import type { IFileSystemService } from "./file-system-service.interface";
 
 /**
  * Interface for managing application configuration.

@@ -1,8 +1,8 @@
 import { vi } from "vitest";
 
-import type { ILlmService } from "../../src/application/interface/llm-service.interface.js";
-import { Readme } from "../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../src/domain/value-object/badge.value-object.js";
+import type { ILlmService } from "../../src/application/interface/llm-service.interface";
+import { Readme } from "../../src/domain/entity/readme.entity";
+import { Badge } from "../../src/domain/value-object/badge.value-object";
 
 /**
  * Create a mock LLM service
