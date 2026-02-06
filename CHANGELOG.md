@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.3.0...v1.4.0) (2026-02-06)
+
+
+### Features
+
+* **readme-generator:** add option to toggle contributing section inclusion ([7be9e49](https://github.com/ElsiKora/ReadMe-Generator/commit/7be9e497227730a39a3fad950c11de8b6a825e38))
+
 # [1.3.0](https://github.com/ElsiKora/ReadMe-Generator/compare/v1.2.0...v1.3.0) (2026-02-06)
 
 
