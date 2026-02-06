@@ -105,14 +105,18 @@ export function createMockCliInterface(): ICliInterfaceService {
  */
 export function createMockFileSystemService(): IFileSystemService {
 	return {
-		readFile: vi.fn().mockResolvedValue("test file content"),
-		writeFile: vi.fn().mockResolvedValue(undefined),
+		createDirectory: vi.fn().mockResolvedValue(undefined),
 		exists: vi.fn().mockResolvedValue(true),
 		getCurrentDirectory: vi.fn().mockReturnValue("/test/directory"),
-		joinPath: vi.fn().mockImplementation((...segments) => segments.join("/")),
-		listFiles: vi.fn().mockResolvedValue(["src/index.ts", "package.json", "README.md"]),
-		isDirectory: vi.fn().mockResolvedValue(true),
+		getDirectoryNameFromFilePath: vi.fn().mockImplementation((filepath: string) => filepath.split("/").slice(0, -1).join("/")),
+		getExtensionFromFilePath: vi.fn().mockImplementation((filepath: string) => "." + (filepath.split(".").pop() ?? "")),
 		getFileStats: vi.fn().mockResolvedValue({ size: 1024 }),
+		isDirectory: vi.fn().mockResolvedValue(true),
+		isPathExists: vi.fn().mockResolvedValue(true),
+		joinPath: vi.fn().mockImplementation((...segments: Array<string>) => segments.join("/")),
+		listFiles: vi.fn().mockResolvedValue(["src/index.ts", "package.json", "README.md"]),
+		readFile: vi.fn().mockResolvedValue("test file content"),
+		writeFile: vi.fn().mockResolvedValue(undefined),
 	};
 }
 
@@ -121,6 +125,19 @@ export function createMockFileSystemService(): IFileSystemService {
  */
 export function createMockGitRepository(): IGitRepository {
 	return {
+		getExtendedPackageInfo: vi.fn().mockResolvedValue({
+			version: "1.0.0",
+			license: "MIT",
+			scripts: { build: "tsc", test: "vitest" },
+		}),
+		getGitStats: vi.fn().mockResolvedValue({
+			commitCount: 42,
+			contributors: [{ name: "Test User", email: "test@example.com", commits: 42 }],
+			branchCount: 3,
+			tags: ["v1.0.0"],
+			firstCommitDate: "2024-01-01",
+			lastCommitDate: "2024-12-01",
+		}),
 		getRepositoryInfo: vi.fn().mockResolvedValue(
 			new RepositoryInfo({
 				name: "mock-repo",

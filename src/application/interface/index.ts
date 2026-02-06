@@ -6,6 +6,7 @@ export type * from "./file-system-service.interface";
 export type * from "./git-clone-service.interface";
 export type * from "./git-repository.interface";
 export type * from "./image-upload-service.interface";
+export type * from "./infrastructure-detection.interface";
 export type * from "./llm-service.interface";
 export type * from "./logo-generator.interface";
 export type * from "./prompt-builder.interface";

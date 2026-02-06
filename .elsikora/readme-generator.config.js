@@ -2,13 +2,15 @@ export default {
 	contextTemplate: "",
 	language: "en",
 	llm: {
-		model: "claude-opus-4-20250514",
+		model: "claude-opus-4-6",
 		provider: "anthropic",
 	},
 	logoType: "local",
-	logoUrl: "j",
+	logoUrl: "https://i.imgur.com/l6gfIbR.png",
 	repositoryOwner: "ElsiKora",
 	repositorySource: "local",
-	scanDepth: 3,
+	scanDepth: 7,
+	shouldIncludeContributors: false,
+	shouldIncludeGithubBadges: false,
 	shouldSkipConfirmations: true,
 };

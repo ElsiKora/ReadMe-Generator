@@ -63,6 +63,57 @@ describe("RepositoryInfo Entity", () => {
 			expect(repoInfo.getDefaultBranch()).toBe("main");
 			expect(repoInfo.getCodeStats()).toBe("");
 		});
+
+		it("should create a repository info with extended data", () => {
+			// Arrange
+			const gitStats = {
+				commitCount: 100,
+				contributors: [{ name: "Dev", email: "dev@test.com", commits: 50 }],
+				branchCount: 5,
+				tags: ["v1.0.0", "v2.0.0"],
+				firstCommitDate: "2024-01-01",
+				lastCommitDate: "2024-12-01",
+			};
+			const packageInfo = {
+				version: "2.0.0",
+				license: "MIT",
+				engines: { node: ">=18" },
+				scripts: { build: "tsc", test: "vitest" },
+			};
+			const detectedTools = {
+				cicd: ["GitHub Actions"],
+				containerization: ["Docker"],
+				linting: ["ESLint", "Prettier"],
+				testing: ["Vitest"],
+				bundlers: ["TypeScript"],
+				packageManagers: ["npm"],
+			};
+			const languageStats = [
+				{ name: "TypeScript", extension: "ts", fileCount: 20, lines: 5000, percentage: 80 },
+				{ name: "JSON", extension: "json", fileCount: 5, lines: 1250, percentage: 20 },
+			];
+
+			const data = {
+				name: "full-project",
+				description: "Full project",
+				owner: "test-owner",
+				gitStats,
+				packageInfo,
+				detectedTools,
+				languageStats,
+				directoryTree: "src/\n├── index.ts\n└── utils/",
+			};
+
+			// Act
+			const repoInfo = new RepositoryInfo(data);
+
+			// Assert
+			expect(repoInfo.getGitStats()).toEqual(gitStats);
+			expect(repoInfo.getPackageInfo()).toEqual(packageInfo);
+			expect(repoInfo.getDetectedTools()).toEqual(detectedTools);
+			expect(repoInfo.getLanguageStats()).toEqual(languageStats);
+			expect(repoInfo.getDirectoryTree()).toBe("src/\n├── index.ts\n└── utils/");
+		});
 	});
 
 	describe("getters", () => {
@@ -121,6 +172,26 @@ describe("RepositoryInfo Entity", () => {
 			it("should return undefined for undefined owner", () => {
 				expect(repoInfo.getOwner()).toBeUndefined();
 			});
+
+			it("should return undefined for undefined gitStats", () => {
+				expect(repoInfo.getGitStats()).toBeUndefined();
+			});
+
+			it("should return undefined for undefined packageInfo", () => {
+				expect(repoInfo.getPackageInfo()).toBeUndefined();
+			});
+
+			it("should return undefined for undefined detectedTools", () => {
+				expect(repoInfo.getDetectedTools()).toBeUndefined();
+			});
+
+			it("should return undefined for undefined languageStats", () => {
+				expect(repoInfo.getLanguageStats()).toBeUndefined();
+			});
+
+			it("should return undefined for undefined directoryTree", () => {
+				expect(repoInfo.getDirectoryTree()).toBeUndefined();
+			});
 		});
 
 		describe("with custom default branch", () => {
@@ -143,6 +214,30 @@ describe("RepositoryInfo Entity", () => {
 
 				expect(repoInfo.getDefaultBranch()).toBe("production");
 			});
+		});
+	});
+
+	describe("withOwner", () => {
+		it("should create a new RepositoryInfo with the given owner preserving all fields", () => {
+			const original = new RepositoryInfo({
+				name: "test-project",
+				description: "Test",
+				owner: "old-owner",
+				defaultBranch: "develop",
+				codeStats: "TS: 100%",
+				gitStats: { commitCount: 10, contributors: [], branchCount: 1, tags: [] },
+				directoryTree: "src/",
+			});
+
+			const updated = original.withOwner("new-owner");
+
+			expect(updated.getOwner()).toBe("new-owner");
+			expect(updated.getName()).toBe("test-project");
+			expect(updated.getDescription()).toBe("Test");
+			expect(updated.getDefaultBranch()).toBe("develop");
+			expect(updated.getCodeStats()).toBe("TS: 100%");
+			expect(updated.getGitStats()?.commitCount).toBe(10);
+			expect(updated.getDirectoryTree()).toBe("src/");
 		});
 	});
 

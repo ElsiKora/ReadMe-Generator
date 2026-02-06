@@ -1,13 +1,18 @@
 import type { ELogoType, LLMConfiguration, Readme, RepositoryInfo } from "../../domain/index";
 
+import type { IGitStats, IPackageInfo } from "./git-repository.interface";
+
 /**
  * Context for generating README with LLM
  */
 export interface ILlmPromptContext {
 	changelogContent?: string;
+	directoryTree?: string;
+	gitStats?: IGitStats;
 	language?: string;
 	logoType?: ELogoType;
 	logoUrl?: string;
+	packageInfo?: IPackageInfo;
 	projectContext?: string;
 	repositoryInfo: RepositoryInfo;
 	scanDepth?: number;
@@ -16,6 +21,8 @@ export interface ILlmPromptContext {
 		path: string;
 		size: number;
 	}>;
+	shouldIncludeContributors?: boolean;
+	shouldIncludeGithubBadges?: boolean;
 }
 
 /**

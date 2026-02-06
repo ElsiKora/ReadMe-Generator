@@ -36,20 +36,22 @@ describe("OpenAILlmService", () => {
 
 		// Create mock response parser
 		mockResponseParser = {
-			parseResponse: vi.fn().mockReturnValue(new Readme({
-				title: "Test Project",
-				shortDescription: "A test project",
-				longDescription: "Detailed description",
-				logoUrl: "https://example.com/logo.png",
-				badges: [],
-				features: ["Feature 1", "Feature 2"],
-				installation: "npm install",
-				usage: "npm start",
-				roadmap: "| Task | Status |\n|------|--------|\n| Test | Done |",
-				faq: "Q: Test?\nA: Yes",
-				license: "MIT",
-				content: "Generated README content"
-			})),
+			parseResponse: vi.fn().mockReturnValue(
+				new Readme({
+					title: "Test Project",
+					shortDescription: "A test project",
+					longDescription: "Detailed description",
+					logoUrl: "https://example.com/logo.png",
+					badges: [],
+					features: ["Feature 1", "Feature 2"],
+					installation: "npm install",
+					usage: "npm start",
+					roadmap: "| Task | Status |\n|------|--------|\n| Test | Done |",
+					faq: "Q: Test?\nA: Yes",
+					license: "MIT",
+					content: "Generated README content",
+				}),
+			),
 		};
 
 		// Create service with dependencies
@@ -104,25 +106,25 @@ describe("OpenAILlmService", () => {
 		it("should generate README successfully", async () => {
 			// Arrange
 			const mockResponse = {
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test Project",
-							short_description: "A test project",
-							long_description: "Detailed description",
-							logoUrl: "https://example.com/logo.png",
-							badges: [
-								{ name: "TypeScript", color: "blue", logo: "typescript", logoColor: "white" }
-							],
-							features: ["Feature 1", "Feature 2"],
-							installation: "npm install",
-							usage: "npm start",
-							roadmap: "| Task | Status |\n|------|--------|\n| Test | ✅ |",
-							faq: "Q: Test?\nA: Yes",
-							license: "MIT",
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test Project",
+								short_description: "A test project",
+								long_description: "Detailed description",
+								logoUrl: "https://example.com/logo.png",
+								badges: [{ name: "TypeScript", color: "blue", logo: "typescript", logoColor: "white" }],
+								features: ["Feature 1", "Feature 2"],
+								installation: "npm install",
+								usage: "npm start",
+								roadmap: "| Task | Status |\n|------|--------|\n| Test | ✅ |",
+								faq: "Q: Test?\nA: Yes",
+								license: "MIT",
+							}),
+						},
 					},
-				}],
+				],
 			};
 
 			mockCreate.mockResolvedValueOnce(mockResponse);
@@ -163,24 +165,21 @@ describe("OpenAILlmService", () => {
 
 		it("should use custom base URL when provided", async () => {
 			// Arrange
-			const configWithBaseUrl = new LLMConfiguration(
-				"test-api-key",
-				ELLMProvider.OPENAI,
-				EOpenAIModel.GPT_5_2,
-				"https://custom.openai.com"
-			);
+			const configWithBaseUrl = new LLMConfiguration("test-api-key", ELLMProvider.OPENAI, EOpenAIModel.GPT_5_2, "https://custom.openai.com");
 
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test",
-							short_description: "Test",
-							badges: [],
-							features: [],
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test",
+								short_description: "Test",
+								badges: [],
+								features: [],
+							}),
+						},
 					},
-				}],
+				],
 			});
 
 			// Act
@@ -203,14 +202,16 @@ describe("OpenAILlmService", () => {
 			mockPromptBuilder.buildSystemPrompt = vi.fn().mockReturnValue("Sistema prompt en español");
 
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Proyecto de Prueba",
-							short_description: "Un proyecto de prueba",
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Proyecto de Prueba",
+								short_description: "Un proyecto de prueba",
+							}),
+						},
 					},
-				}],
+				],
 			});
 
 			// Act
@@ -223,26 +224,29 @@ describe("OpenAILlmService", () => {
 		it("should throw error when no response from OpenAI", async () => {
 			// Arrange
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: null,
+				choices: [
+					{
+						message: {
+							content: null,
+						},
 					},
-				}],
+				],
 			});
 
 			// Act & Assert
-			await expect(service.generateReadme(mockContext, mockConfig))
-				.rejects.toThrow("No response from OpenAI");
+			await expect(service.generateReadme(mockContext, mockConfig)).rejects.toThrow("No response from OpenAI");
 		});
 
 		it("should throw error for invalid JSON response", async () => {
 			// Arrange
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: "Invalid JSON",
+				choices: [
+					{
+						message: {
+							content: "Invalid JSON",
+						},
 					},
-				}],
+				],
 			});
 
 			// Mock parser to throw error
@@ -251,21 +255,22 @@ describe("OpenAILlmService", () => {
 			});
 
 			// Act & Assert
-			await expect(service.generateReadme(mockContext, mockConfig))
-				.rejects.toThrow("Failed to parse README response");
+			await expect(service.generateReadme(mockContext, mockConfig)).rejects.toThrow("Failed to parse README response");
 		});
 
 		it("should throw error for missing required fields", async () => {
 			// Arrange
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							// Missing title and short_description
-							badges: [],
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								// Missing title and short_description
+								badges: [],
+							}),
+						},
 					},
-				}],
+				],
 			});
 
 			// Mock parser to throw error
@@ -274,22 +279,23 @@ describe("OpenAILlmService", () => {
 			});
 
 			// Act & Assert
-			await expect(service.generateReadme(mockContext, mockConfig))
-				.rejects.toThrow("Missing required fields in response");
+			await expect(service.generateReadme(mockContext, mockConfig)).rejects.toThrow("Missing required fields in response");
 		});
 
 		it("should handle empty optional fields", async () => {
 			// Arrange
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test",
-							short_description: "Test",
-							// All other fields missing
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test",
+								short_description: "Test",
+								// All other fields missing
+							}),
+						},
 					},
-				}],
+				],
 			});
 
 			// Act
@@ -305,14 +311,16 @@ describe("OpenAILlmService", () => {
 			mockPromptBuilder.buildUserPrompt = vi.fn().mockReturnValue("User prompt with changelog");
 
 			mockCreate.mockResolvedValueOnce({
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test",
-							short_description: "Test",
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test",
+								short_description: "Test",
+							}),
+						},
 					},
-				}],
+				],
 			});
 
 			// Act
@@ -327,8 +335,7 @@ describe("OpenAILlmService", () => {
 			mockCreate.mockRejectedValueOnce(new Error("API Error"));
 
 			// Act & Assert
-			await expect(service.generateReadme(mockContext, mockConfig))
-				.rejects.toThrow("API Error");
+			await expect(service.generateReadme(mockContext, mockConfig)).rejects.toThrow("API Error");
 		});
 	});
 
@@ -339,15 +346,17 @@ describe("OpenAILlmService", () => {
 			const edgeCaseConfig = new LLMConfiguration("key", ELLMProvider.OPENAI, EOpenAIModel.GPT_5_2);
 
 			const mockResponse = {
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test",
-							short_description: "Test",
-							long_description: longDescription,
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test",
+								short_description: "Test",
+								long_description: longDescription,
+							}),
+						},
 					},
-				}],
+				],
 			};
 
 			mockCreate.mockResolvedValueOnce(mockResponse);
@@ -364,14 +373,16 @@ describe("OpenAILlmService", () => {
 			const edgeCaseConfig = new LLMConfiguration("key", ELLMProvider.OPENAI, EOpenAIModel.GPT_5_2);
 
 			const mockResponse = {
-				choices: [{
-					message: {
-						content: JSON.stringify({
-							title: "Test \"Project\" with 'quotes'",
-							short_description: "Description with\nnewlines\tand\ttabs",
-						}),
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								title: "Test \"Project\" with 'quotes'",
+								short_description: "Description with\nnewlines\tand\ttabs",
+							}),
+						},
 					},
-				}],
+				],
 			};
 
 			mockCreate.mockResolvedValueOnce(mockResponse);

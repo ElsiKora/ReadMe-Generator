@@ -55,6 +55,16 @@ export interface IConfig {
 	scanDepth?: number;
 
 	/**
+	 * Whether to include contributors section
+	 */
+	shouldIncludeContributors?: boolean;
+
+	/**
+	 * Whether to include dynamic GitHub badges (stars, forks, issues, etc.)
+	 */
+	shouldIncludeGithubBadges?: boolean;
+
+	/**
 	 * Whether to skip confirmation prompts
 	 */
 	shouldSkipConfirmations?: boolean;

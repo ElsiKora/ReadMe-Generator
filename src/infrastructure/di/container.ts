@@ -22,6 +22,7 @@ import { OpenAILlmService } from "../llm/openai-llm.service";
 import { CosmicConfigService } from "../service/cosmic-config.service";
 import { GitCloneService } from "../service/git-clone.service";
 import { ImgurImageUploadService } from "../service/imgur-upload.service";
+import { InfrastructureDetectionService } from "../service/infrastructure-detection.service";
 import { NodeFileSystemService } from "../service/node-file-system.service";
 import { PromptBuilderService } from "../service/prompt-builder.service";
 import { PromptsCliInterface } from "../service/prompts-cli-interface.service";
@@ -35,6 +36,7 @@ export const GitRepositoryToken: symbol = Symbol("GitRepository");
 export const GitCloneServiceToken: symbol = Symbol("GitCloneService");
 export const LlmServicesToken: symbol = Symbol("LlmServices");
 export const ImageUploadServiceToken: symbol = Symbol("ImageUploadService");
+export const InfrastructureDetectionServiceToken: symbol = Symbol("InfrastructureDetectionService");
 export const ReadmeBuilderToken: symbol = Symbol("ReadmeBuilder");
 export const PromptBuilderServiceToken: symbol = Symbol("PromptBuilderService");
 export const ReadmeResponseParserServiceToken: symbol = Symbol("ReadmeResponseParserService");
@@ -58,6 +60,7 @@ export function createAppContainer(): IContainer {
 	container.register(GitCloneServiceToken, new GitCloneService());
 	container.register(ReadmeBuilderToken, new ReadmeBuilder());
 	container.register(ImageUploadServiceToken, new ImgurImageUploadService());
+	container.register(InfrastructureDetectionServiceToken, new InfrastructureDetectionService());
 
 	// Register Config Service with factory function
 	container.register(
