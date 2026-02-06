@@ -1,6 +1,6 @@
 {
 	"name": "@elsikora/readme-generator",
-	"version": "1.3.0-dev.1",
+	"version": "1.3.0",
 	"description": "CLI utility for generating README.md files",
 	"keywords": [
 		"cli",
