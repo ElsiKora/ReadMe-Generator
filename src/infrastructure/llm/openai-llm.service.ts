@@ -1,14 +1,14 @@
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import OpenAI from "openai";
 
-import { DEFAULT_TEMPERATURE, OPENAI_MAX_TOKENS } from "../../domain/constant/numeric.constant.js";
-import { EOpenAIModel } from "../../domain/enum/openai-model.enum.js";
+import { DEFAULT_TEMPERATURE, OPENAI_MAX_TOKENS } from "../../domain/constant/numeric.constant";
+import { EOpenAIModel } from "../../domain/enum/openai-model.enum";
 
 /**
  * OpenAI implementation of the LLM service
@@ -44,7 +44,7 @@ export class OpenAILlmService implements ILlmService {
 				{ content: systemPrompt, role: "system" },
 				{ content: userPrompt, role: "user" },
 			],
-			model: configuration.getModel() ?? EOpenAIModel.GPT_4O,
+			model: configuration.getModel() ?? EOpenAIModel.GPT_5_2,
 			response_format: { type: "json_object" },
 			temperature: DEFAULT_TEMPERATURE,
 		});

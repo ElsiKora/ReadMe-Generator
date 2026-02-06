@@ -1,13 +1,13 @@
 import { vi } from "vitest";
 
-import { RepositoryInfo } from "../../src/domain/entity/repository-info.entity.js";
-import { Badge } from "../../src/domain/value-object/badge.value-object.js";
-import { Readme } from "../../src/domain/entity/readme.entity.js";
-import { ELLMProvider } from "../../src/domain/enum/llm-provider.enum.js";
-import type { ILlmPromptContext } from "../../src/application/interface/llm-service.interface.js";
-import type { ICliInterfaceService } from "../../src/application/interface/cli-interface-service.interface.js";
-import type { IFileSystemService } from "../../src/application/interface/file-system-service.interface.js";
-import type { IGitRepository } from "../../src/application/interface/git-repository.interface.js";
+import { RepositoryInfo } from "../../src/domain/entity/repository-info.entity";
+import { Badge } from "../../src/domain/value-object/badge.value-object";
+import { Readme } from "../../src/domain/entity/readme.entity";
+import { ELLMProvider } from "../../src/domain/enum/llm-provider.enum";
+import type { ILlmPromptContext } from "../../src/application/interface/llm-service.interface";
+import type { ICliInterfaceService } from "../../src/application/interface/cli-interface-service.interface";
+import type { IFileSystemService } from "../../src/application/interface/file-system-service.interface";
+import type { IGitRepository } from "../../src/application/interface/git-repository.interface";
 
 /**
  * Creates a mock function with type safety
@@ -128,7 +128,7 @@ export function createMockGitRepository(): IGitRepository {
 				owner: "mock-owner",
 				defaultBranch: "main",
 				codeStats: "JavaScript: 100%",
-			})
+			}),
 		),
 		isGitRepository: vi.fn().mockResolvedValue(true),
 	};
@@ -145,4 +145,4 @@ export function createTestContext() {
 		llmConfiguration: createMockLLMConfiguration(),
 		llmPromptContext: createMockLlmPromptContext(),
 	};
-} 
+}

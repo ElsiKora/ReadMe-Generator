@@ -1,8 +1,8 @@
-import type { ICliInterfaceService } from "../../../../src/application/interface/cli-interface-service.interface.js";
+import type { ICliInterfaceService } from "../../../../src/application/interface/cli-interface-service.interface";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PromptsCliInterface } from "../../../../src/infrastructure/service/prompts-cli-interface.service.js";
+import { PromptsCliInterface } from "../../../../src/infrastructure/service/prompts-cli-interface.service";
 
 // Use vi.hoisted to ensure mocks are created before module loading
 const { mockPromptsFunction, mockPrompts } = vi.hoisted(() => {
@@ -36,18 +36,18 @@ describe("PromptsCliInterface", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		
+
 		// Reset the mock function
 		mockPromptsFunction.mockReset();
 		mockPrompts.override.mockReset();
-		
+
 		// Spy on console methods
 		consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 		consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 		processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
 			throw new Error("Process exit called");
 		});
-		
+
 		service = new PromptsCliInterface();
 	});
 
@@ -108,7 +108,7 @@ describe("PromptsCliInterface", () => {
 				}),
 				expect.objectContaining({
 					onCancel: expect.any(Function),
-				})
+				}),
 			);
 		});
 
@@ -132,7 +132,7 @@ describe("PromptsCliInterface", () => {
 				}),
 				expect.objectContaining({
 					onCancel: expect.any(Function),
-				})
+				}),
 			);
 		});
 
@@ -164,7 +164,7 @@ describe("PromptsCliInterface", () => {
 
 		it("should handle validation", async () => {
 			// Arrange
-			const validate = vi.fn((value: string) => value.length > 3 ? true : "Too short");
+			const validate = vi.fn((value: string) => (value.length > 3 ? true : "Too short"));
 			mockPromptsFunction.mockResolvedValue({ value: "valid input" });
 
 			// Act
@@ -179,7 +179,7 @@ describe("PromptsCliInterface", () => {
 					type: "text",
 					validate,
 				}),
-				expect.any(Object)
+				expect.any(Object),
 			);
 		});
 
@@ -195,7 +195,7 @@ describe("PromptsCliInterface", () => {
 				expect.objectContaining({
 					initial: "default",
 				}),
-				expect.any(Object)
+				expect.any(Object),
 			);
 		});
 
@@ -229,11 +229,12 @@ describe("PromptsCliInterface", () => {
 			expect(mockPromptsFunction).toHaveBeenCalledWith(
 				expect.objectContaining({
 					choices: [
-						{ title: "Option 1", value: "opt1", description: undefined },
-						{ title: "Option 2", value: "opt2", description: "This is option 2" },
+						{ title: "Option 1", value: "opt1" },
+						{ title: "Option 2", value: "opt2" },
 					],
+					initial: undefined,
 				}),
-				expect.any(Object)
+				expect.any(Object),
 			);
 		});
 
@@ -250,4 +251,4 @@ describe("PromptsCliInterface", () => {
 			expect(processExitSpy).toHaveBeenCalledWith(0);
 		});
 	});
-}); 
+});

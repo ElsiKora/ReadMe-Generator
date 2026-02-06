@@ -1,14 +1,14 @@
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import { Anthropic } from "@anthropic-ai/sdk";
 
-import { ANTHROPIC_MAX_TOKENS, DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant.js";
-import { EAnthropicModel } from "../../domain/enum/anthropic-model.enum.js";
+import { ANTHROPIC_MAX_TOKENS, DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant";
+import { EAnthropicModel } from "../../domain/enum/anthropic-model.enum";
 
 /**
  * Anthropic implementation of the LLM service
@@ -41,7 +41,7 @@ export class AnthropicLlmService implements ILlmService {
 		const response: Anthropic.Message = await anthropic.messages.create({
 			max_tokens: ANTHROPIC_MAX_TOKENS,
 			messages: [{ content: userPrompt, role: "user" }],
-			model: configuration.getModel() ?? EAnthropicModel.CLAUDE_3_5_SONNET,
+			model: configuration.getModel() ?? EAnthropicModel.CLAUDE_SONNET_4_5,
 			system: systemPrompt,
 			temperature: DEFAULT_TEMPERATURE,
 		});

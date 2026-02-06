@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
+import { Readme } from "../../../../src/domain/entity/readme.entity";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
 
 describe("Readme Entity", () => {
 	describe("constructor", () => {
@@ -85,10 +85,7 @@ describe("Readme Entity", () => {
 				shortDescription: "Test description",
 				longDescription: "Detailed test description",
 				logoUrl: "https://test.com/logo.png",
-				badges: [
-					new Badge("JavaScript", "yellow", "javascript", "black"),
-					new Badge("Node.js", "green", "node.js", "white"),
-				],
+				badges: [new Badge("JavaScript", "yellow", "javascript", "black"), new Badge("Node.js", "green", "node.js", "white")],
 				features: ["Fast", "Reliable", "Scalable"],
 				installation: "npm install test-project",
 				usage: "const test = require('test-project');",
@@ -150,4 +147,4 @@ describe("Readme Entity", () => {
 			expect(readme.getContent()).toContain("Test Project");
 		});
 	});
-}); 
+});

@@ -1,4 +1,4 @@
-import type { Badge } from "../value-object/badge.value-object.js";
+import type { Badge } from "../value-object/badge.value-object";
 
 /**
  * README entity

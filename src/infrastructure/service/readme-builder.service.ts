@@ -1,7 +1,7 @@
-import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface.js";
-import type { Badge, RepositoryInfo } from "../../domain/index.js";
+import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface";
+import type { Badge, RepositoryInfo } from "../../domain/index";
 
-import { Badge as BadgeClass, ELogoType } from "../../domain/index.js";
+import { Badge as BadgeClass, ELogoType } from "../../domain/index";
 
 /**
  * Default badges to include

@@ -1,12 +1,12 @@
-import type { IGitRepository } from "../../application/interface/git-repository.interface.js";
+import type { IGitRepository } from "../../application/interface/git-repository.interface";
 
 import { exec } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { RepositoryInfo } from "../../domain/entity/repository-info.entity.js";
-import { SECOND_ELEMENT_INDEX } from "../constant/logo-generator.constant.js";
+import { RepositoryInfo } from "../../domain/entity/repository-info.entity";
+import { SECOND_ELEMENT_INDEX } from "../constant/logo-generator.constant";
 
 const execAsync: (command: string) => Promise<{ stderr: string; stdout: string }> = promisify(exec);
 

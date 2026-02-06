@@ -1,4 +1,4 @@
-import type { RepositoryInfo } from "../../domain/index.js";
+import type { RepositoryInfo } from "../../domain/index";
 
 /**
  * Interface for Git repository operations

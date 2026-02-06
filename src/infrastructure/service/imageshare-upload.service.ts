@@ -1,4 +1,4 @@
-import type { IImageUploadService } from "../../application/interface/image-upload-service.interface.js";
+import type { IImageUploadService } from "../../application/interface/image-upload-service.interface";
 
 /**
  * ImageShare implementation of the image upload service

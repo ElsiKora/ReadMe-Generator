@@ -1,6 +1,6 @@
-import type { ELLMProvider } from "../enum/llm-provider.enum.js";
+import type { ELLMProvider } from "../enum/llm-provider.enum";
 
-import { ApiKey } from "../value-object/api-key.value-object.js";
+import { ApiKey } from "../value-object/api-key.value-object";
 
 /**
  * LLM Configuration entity
@@ -51,5 +51,32 @@ export class LLMConfiguration {
 	 */
 	getProvider(): ELLMProvider {
 		return this.PROVIDER;
+	}
+
+	/**
+	 * Create a new configuration with a different API key
+	 * @param {string} apiKey - The new API key string
+	 * @returns {LLMConfiguration} A new configuration with the updated API key
+	 */
+	withApiKey(apiKey: string): LLMConfiguration {
+		return new LLMConfiguration(apiKey, this.PROVIDER, this.MODEL, this.BASE_URL);
+	}
+
+	/**
+	 * Create a new configuration with a different model
+	 * @param {string} model - The new model name
+	 * @returns {LLMConfiguration} A new configuration with the updated model
+	 */
+	withModel(model: string): LLMConfiguration {
+		return new LLMConfiguration(this.API_KEY.getValue(), this.PROVIDER, model, this.BASE_URL);
+	}
+
+	/**
+	 * Create a new configuration with a different provider
+	 * @param {ELLMProvider} provider - The new provider
+	 * @returns {LLMConfiguration} A new configuration with the updated provider
+	 */
+	withProvider(provider: ELLMProvider): LLMConfiguration {
+		return new LLMConfiguration(this.API_KEY.getValue(), provider, this.MODEL, this.BASE_URL);
 	}
 }

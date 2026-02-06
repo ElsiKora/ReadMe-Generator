@@ -1,10 +1,10 @@
 import type { Canvas, CanvasRenderingContext2D } from "canvas";
 
-import type { ILogoGenerator } from "../../application/interface/logo-generator.interface.js";
+import type { ILogoGenerator } from "../../application/interface/logo-generator.interface";
 
 import { createCanvas } from "canvas";
 
-import { FIRST_ELEMENT_INDEX, LOGO_BOTTOM_LINE_OFFSET, LOGO_CENTER_DIVISOR, LOGO_FONT_SIZE_ADJUSTMENT, LOGO_HEIGHT, LOGO_INITIAL_FONT_SIZE, LOGO_PINK_COLOR, LOGO_PURPLE_COLOR, LOGO_SPLIT_THRESHOLD, LOGO_WIDTH, SECOND_ELEMENT_INDEX } from "../constant/logo-generator.constant.js";
+import { FIRST_ELEMENT_INDEX, LOGO_BOTTOM_LINE_OFFSET, LOGO_CENTER_DIVISOR, LOGO_FONT_SIZE_ADJUSTMENT, LOGO_HEIGHT, LOGO_INITIAL_FONT_SIZE, LOGO_PINK_COLOR, LOGO_PURPLE_COLOR, LOGO_SPLIT_THRESHOLD, LOGO_WIDTH, SECOND_ELEMENT_INDEX } from "../constant/logo-generator.constant";
 
 /**
  * Service for generating project logos locally using canvas

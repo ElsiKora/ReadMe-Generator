@@ -1,4 +1,4 @@
-import type { ILlmPromptContext } from "./llm-service.interface.js";
+import type { ILlmPromptContext } from "./llm-service.interface";
 
 /**
  * Interface for building prompts for LLM services

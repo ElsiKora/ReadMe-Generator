@@ -1,4 +1,4 @@
-import type { ELogoType } from "../../domain/enum/logo-type.enum.js";
+import type { ELogoType } from "../../domain/enum/logo-type.enum";
 
 /**
  * Main configuration interface for README Generator

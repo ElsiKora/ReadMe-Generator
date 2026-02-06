@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { ReadmeResponseParserService } from "../../../../src/infrastructure/service/readme-response-parser.service.js";
-import type { IReadmeBuilder } from "../../../../src/application/interface/readme-builder.interface.js";
-import type { ILlmPromptContext } from "../../../../src/application/interface/llm-service.interface.js";
-import { createMockLlmPromptContext } from "../../../helpers/test-utils.js";
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { ELogoType } from "../../../../src/domain/enum/logo-type.enum.js";
+import { ReadmeResponseParserService } from "../../../../src/infrastructure/service/readme-response-parser.service";
+import type { IReadmeBuilder } from "../../../../src/application/interface/readme-builder.interface";
+import type { ILlmPromptContext } from "../../../../src/application/interface/llm-service.interface";
+import { createMockLlmPromptContext } from "../../../helpers/test-utils";
+import { Readme } from "../../../../src/domain/entity/readme.entity";
+import { ELogoType } from "../../../../src/domain/enum/logo-type.enum";
 
 describe("ReadmeResponseParserService", () => {
 	let service: ReadmeResponseParserService;
@@ -33,9 +33,7 @@ describe("ReadmeResponseParserService", () => {
 				short_description: "A test project",
 				long_description: "Detailed description",
 				logoUrl: "https://example.com/logo.png",
-				badges: [
-					{ name: "TypeScript", color: "blue", logo: "typescript", logoColor: "white" }
-				],
+				badges: [{ name: "TypeScript", color: "blue", logo: "typescript", logoColor: "white" }],
 				features: ["Feature 1", "Feature 2"],
 				installation: "npm install",
 				usage: "npm start",
@@ -133,8 +131,7 @@ This should work well for your project.`;
 			});
 
 			// Act & Assert
-			expect(() => service.parseResponse(invalidResponse, mockContext))
-				.toThrow("Missing required fields in response");
+			expect(() => service.parseResponse(invalidResponse, mockContext)).toThrow("Missing required fields in response");
 		});
 
 		it("should throw error for invalid JSON", () => {
@@ -142,8 +139,7 @@ This should work well for your project.`;
 			const invalidResponse = "Not valid JSON at all";
 
 			// Act & Assert
-			expect(() => service.parseResponse(invalidResponse, mockContext))
-				.toThrow("Failed to parse README response");
+			expect(() => service.parseResponse(invalidResponse, mockContext)).toThrow("Failed to parse README response");
 		});
 
 		it("should use logo preferences from context", () => {
@@ -170,7 +166,7 @@ This should work well for your project.`;
 				expect.objectContaining({
 					logoUrl: "https://custom.com/logo.png",
 					logoType: ELogoType.CUSTOM,
-				})
+				}),
 			);
 		});
 
@@ -191,8 +187,8 @@ This should work well for your project.`;
 			expect(mockReadmeBuilder.build).toHaveBeenCalledWith(
 				expect.objectContaining({
 					logoUrl: "https://ai-generated.com/logo.png",
-				})
+				}),
 			);
 		});
 	});
-}); 
+});

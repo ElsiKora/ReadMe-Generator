@@ -1,4 +1,4 @@
-import type { IGitCloneService } from "../../../../src/application/interface/git-clone-service.interface.js";
+import type { IGitCloneService } from "../../../../src/application/interface/git-clone-service.interface";
 
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Use vi.hoisted to ensure mocks are created before module loading
 const { mockExecAsync } = vi.hoisted(() => {
 	return {
-		mockExecAsync: vi.fn()
+		mockExecAsync: vi.fn(),
 	};
 });
 
@@ -23,7 +23,7 @@ vi.mock("node:fs/promises");
 vi.mock("node:os");
 
 // Import the service after mocking
-import { GitCloneService } from "../../../../src/infrastructure/service/git-clone.service.js";
+import { GitCloneService } from "../../../../src/infrastructure/service/git-clone.service";
 
 describe("GitCloneService", () => {
 	let service: IGitCloneService;
@@ -52,15 +52,12 @@ describe("GitCloneService", () => {
 			// Assert
 			expect(result).toBe(expectedPath);
 			expect(mockFs.mkdtemp).toHaveBeenCalledWith(path.join("/tmp", "readme-generator-"));
-			expect(mockExecAsync).toHaveBeenCalledWith(
-				`git clone --depth 1 "${repositoryUrl}" "${expectedPath}"`,
-				{
-					cwd: tempDir,
-					env: expect.objectContaining({
-						GIT_TERMINAL_PROMPT: "0",
-					}),
-				}
-			);
+			expect(mockExecAsync).toHaveBeenCalledWith(`git clone --depth 1 "${repositoryUrl}" "${expectedPath}"`, {
+				cwd: tempDir,
+				env: expect.objectContaining({
+					GIT_TERMINAL_PROMPT: "0",
+				}),
+			});
 		});
 
 		it("should handle SSH URLs correctly", async () => {
@@ -153,11 +150,9 @@ describe("GitCloneService", () => {
 			await service.cleanupRepository(directoryPath);
 
 			// Assert
-			expect(consoleWarnSpy).toHaveBeenCalledWith(
-				`Warning: Failed to clean up directory ${directoryPath}: Permission denied`
-			);
+			expect(consoleWarnSpy).toHaveBeenCalledWith(`Warning: Failed to clean up directory ${directoryPath}: Permission denied`);
 
 			consoleWarnSpy.mockRestore();
 		});
 	});
-}); 
+});

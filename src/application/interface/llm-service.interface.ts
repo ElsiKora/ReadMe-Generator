@@ -1,4 +1,4 @@
-import type { ELogoType, LLMConfiguration, Readme, RepositoryInfo } from "../../domain/index.js";
+import type { ELogoType, LLMConfiguration, Readme, RepositoryInfo } from "../../domain/index";
 
 /**
  * Context for generating README with LLM

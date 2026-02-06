@@ -59,4 +59,19 @@ export class RepositoryInfo {
 	getOwner(): string | undefined {
 		return this.OWNER;
 	}
+
+	/**
+	 * Create a new RepositoryInfo with a different owner
+	 * @param {string} owner - The new owner
+	 * @returns {RepositoryInfo} A new RepositoryInfo with the updated owner
+	 */
+	withOwner(owner: string): RepositoryInfo {
+		return new RepositoryInfo({
+			codeStats: this.CODE_STATS,
+			defaultBranch: this.DEFAULT_BRANCH,
+			description: this.DESCRIPTION,
+			name: this.NAME,
+			owner,
+		});
+	}
 }

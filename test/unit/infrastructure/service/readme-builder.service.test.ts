@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { ReadmeBuilder } from "../../../../src/infrastructure/service/readme-builder.service.js";
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
-import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity.js";
+import { ReadmeBuilder } from "../../../../src/infrastructure/service/readme-builder.service";
+import { Readme } from "../../../../src/domain/entity/readme.entity";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
+import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity";
 
 describe("ReadmeBuilder Service", () => {
 	let builder: ReadmeBuilder;
@@ -21,11 +21,8 @@ describe("ReadmeBuilder Service", () => {
 	describe("build", () => {
 		it("should build a complete README with all sections", () => {
 			// Arrange
-			const badges = [
-				new Badge("TypeScript", "blue", "typescript", "white"),
-				new Badge("Node.js", "green", "node.js", "white"),
-			];
-			
+			const badges = [new Badge("TypeScript", "blue", "typescript", "white"), new Badge("Node.js", "green", "node.js", "white")];
+
 			const data = {
 				title: "Awesome Project",
 				shortDescription: "A short description of the project",
@@ -45,7 +42,7 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Awesome Project</h1>");
+			expect(result).toContain('<h1 align="center">Awesome Project</h1>');
 			expect(result).toContain("A short description of the project");
 			expect(result).toContain(`<img src="https://example.com/logo.png" width="700" alt="project-logo">`);
 			expect(result).toContain(`<img src="${badges[0].toUrl()}" alt="TypeScript">`);
@@ -85,7 +82,7 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Minimal Project</h1>");
+			expect(result).toContain('<h1 align="center">Minimal Project</h1>');
 			expect(result).toContain("Minimal description");
 			// Should use Socialify URL with repository info
 			expect(result).toContain("socialify.git.ci/test-owner/test-repo");
@@ -116,7 +113,7 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Partial Project</h1>");
+			expect(result).toContain('<h1 align="center">Partial Project</h1>');
 			expect(result).toContain(`<img src="${badges[0].toUrl()}" alt="JavaScript">`);
 			expect(result).toContain("## 📖 Description");
 			expect(result).toContain("## 🚀 Features");
@@ -172,7 +169,7 @@ describe("ReadmeBuilder Service", () => {
 			const result = builder.build(data);
 
 			// Assert
-			expect(result).toContain("<h1 align=\"center\">Project with <Special> Characters & Symbols</h1>");
+			expect(result).toContain('<h1 align="center">Project with <Special> Characters & Symbols</h1>');
 			expect(result).toContain("Testing & validating < > \" ' characters");
 			expect(result).toContain("Contains [brackets], {braces}, and (parentheses)");
 			expect(result).toContain("- ✨ **Feature with * asterisk**");
@@ -181,12 +178,8 @@ describe("ReadmeBuilder Service", () => {
 
 		it("should generate proper badge HTML", () => {
 			// Arrange
-			const badges = [
-				new Badge("Build", "success", "github-actions", "white"),
-				new Badge("Coverage", "90%25", "codecov", "white"),
-				new Badge("Version", "1.0.0", "npm", "white"),
-			];
-			
+			const badges = [new Badge("Build", "success", "github-actions", "white"), new Badge("Coverage", "90%25", "codecov", "white"), new Badge("Version", "1.0.0", "npm", "white")];
+
 			const data = {
 				title: "Badge Test",
 				shortDescription: "Testing badges",
@@ -272,7 +265,7 @@ describe("ReadmeBuilder Service", () => {
 				description: "Test repository",
 				owner: "ElsiKora",
 			});
-			
+
 			const data = {
 				title: "ElsiKora Test",
 				shortDescription: "Testing ElsiKora badge",
@@ -292,7 +285,7 @@ describe("ReadmeBuilder Service", () => {
 
 			// Assert
 			expect(result).toContain('<a aria-label="ElsiKora logo" href="https://elsikora.com">');
-			expect(result).toContain('MADE%20BY%20ElsiKora-333333.svg?style=for-the-badge');
+			expect(result).toContain("MADE%20BY%20ElsiKora-333333.svg?style=for-the-badge");
 		});
 
 		it("should NOT include ElsiKora badge for non-ElsiKora repositories", () => {
@@ -316,7 +309,7 @@ describe("ReadmeBuilder Service", () => {
 
 			// Assert
 			expect(result).not.toContain('<a aria-label="ElsiKora logo" href="https://elsikora.com">');
-			expect(result).not.toContain('MADE%20BY%20ElsiKora');
+			expect(result).not.toContain("MADE%20BY%20ElsiKora");
 		});
 
 		it("should generate Socialify URL with custom configuration", () => {
@@ -381,4 +374,4 @@ describe("ReadmeBuilder Service", () => {
 			expect(result).toContain("socialify.git.ci/your-username/no-owner-repo");
 		});
 	});
-}); 
+});

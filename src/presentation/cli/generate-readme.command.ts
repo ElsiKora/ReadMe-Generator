@@ -1,25 +1,26 @@
 import type { IContainer } from "@elsikora/cladi";
 
-import type { ICliInterfaceService, ISelectOption } from "../../application/interface/cli-interface-service.interface.js";
-import type { IConfigService } from "../../application/interface/config-service.interface.js";
-import type { IConfig } from "../../application/interface/config.interface.js";
-import type { IFileSystemService } from "../../application/interface/file-system-service.interface.js";
-import type { IGitCloneService } from "../../application/interface/git-clone-service.interface.js";
-import type { IGitRepository } from "../../application/interface/git-repository.interface.js";
-import type { IImageUploadService } from "../../application/interface/image-upload-service.interface.js";
-import type { ILlmPromptContext } from "../../application/interface/llm-service.interface.js";
-import type { ConfigureLLMUseCase } from "../../application/use-case/configure-llm.use-case.js";
-import type { GenerateReadmeUseCase } from "../../application/use-case/generate-readme.use-case.js";
-import type { LLMConfiguration, Readme } from "../../domain/index.js";
+import type { ICliInterfaceServiceSelectOptions } from "../../application/interface/cli-interface-service-select-options.interface";
+import type { ICliInterfaceService } from "../../application/interface/cli-interface-service.interface";
+import type { IConfigService } from "../../application/interface/config-service.interface";
+import type { IConfig } from "../../application/interface/config.interface";
+import type { IFileSystemService } from "../../application/interface/file-system-service.interface";
+import type { IGitCloneService } from "../../application/interface/git-clone-service.interface";
+import type { IGitRepository } from "../../application/interface/git-repository.interface";
+import type { IImageUploadService } from "../../application/interface/image-upload-service.interface";
+import type { ILlmPromptContext } from "../../application/interface/llm-service.interface";
+import type { ConfigureLLMUseCase } from "../../application/use-case/configure-llm.use-case";
+import type { GenerateReadmeUseCase } from "../../application/use-case/generate-readme.use-case";
+import type { LLMConfiguration, Readme } from "../../domain/index";
 
 import fs from "node:fs/promises";
 
-import { KILOBYTE, MAX_FILE_SIZE, MAX_TOTAL_SIZE, MEGABYTE } from "../../domain/constant/file-scanning.constant.js";
-import { EScanDepth } from "../../domain/enum/scan-depth.enum.js";
-import { ELogoType, RepositoryInfo } from "../../domain/index.js";
-import { SECOND_ELEMENT_INDEX, THIRD_ELEMENT_INDEX } from "../../infrastructure/constant/logo-generator.constant.js";
-import { CliInterfaceServiceToken, ConfigServiceToken, ConfigureLLMUseCaseToken, FileSystemServiceToken, GenerateReadmeUseCaseToken, GitCloneServiceToken, GitRepositoryToken, ImageUploadServiceToken } from "../../infrastructure/di/container.js";
-import { LogoGeneratorService } from "../../infrastructure/service/logo-generator.service.js";
+import { KILOBYTE, MAX_FILE_SIZE, MAX_TOTAL_SIZE, MEGABYTE } from "../../domain/constant/file-scanning.constant";
+import { EScanDepth } from "../../domain/enum/scan-depth.enum";
+import { ELogoType, RepositoryInfo } from "../../domain/index";
+import { SECOND_ELEMENT_INDEX, THIRD_ELEMENT_INDEX } from "../../infrastructure/constant/logo-generator.constant";
+import { CliInterfaceServiceToken, ConfigServiceToken, ConfigureLLMUseCaseToken, FileSystemServiceToken, GenerateReadmeUseCaseToken, GitCloneServiceToken, GitRepositoryToken, ImageUploadServiceToken } from "../../infrastructure/di/container";
+import { LogoGeneratorService } from "../../infrastructure/service/logo-generator.service";
 
 /**
  * CLI command for generating README
@@ -119,7 +120,7 @@ export class GenerateReadmeCommand {
 			// Ask for scan depth
 			this.CLI_INTERFACE.info("📂 Project File Scanning");
 
-			const scanDepthOptions: Array<ISelectOption> = [
+			const scanDepthOptions: Array<ICliInterfaceServiceSelectOptions> = [
 				{ label: "Shallow (1 level)", value: EScanDepth.SHALLOW.toString() },
 				{ label: "Medium (2 levels)", value: EScanDepth.MEDIUM.toString() },
 				{ label: "Deep (3 levels)", value: EScanDepth.DEEP.toString() },
@@ -349,7 +350,7 @@ export class GenerateReadmeCommand {
 	 * @returns {Promise<{ logoType: ELogoType; logoUrl?: string }>} Logo configuration
 	 */
 	private async handleLogoGeneration(existingConfig: IConfig, useExistingConfig: boolean, repositoryInfo: RepositoryInfo): Promise<{ logoType: ELogoType; logoUrl?: string }> {
-		const logoOptions: Array<ISelectOption> = [
+		const logoOptions: Array<ICliInterfaceServiceSelectOptions> = [
 			{ label: "Socialify (GitHub project card)", value: ELogoType.SOCIALIFY },
 			{ label: "Generate locally (gradient style)", value: ELogoType.LOCAL },
 			{ label: "Use custom URL", value: ELogoType.CUSTOM },
@@ -363,7 +364,7 @@ export class GenerateReadmeCommand {
 			logoUrl = existingConfig.logoUrl;
 			this.CLI_INTERFACE.info(`📌 Using saved logo preference: ${logoType}`);
 		} else {
-			logoType = (await this.CLI_INTERFACE.select("How would you like to generate the project logo?", logoOptions)) as ELogoType;
+			logoType = await this.CLI_INTERFACE.select("How would you like to generate the project logo?", logoOptions);
 		}
 
 		if (logoType === ELogoType.CUSTOM && !logoUrl) {
@@ -485,7 +486,7 @@ export class GenerateReadmeCommand {
 			repoSource = "local";
 			this.CLI_INTERFACE.info(`📌 Using default repository source: current directory`);
 		} else {
-			const repoSourceOptions: Array<ISelectOption> = [
+			const repoSourceOptions: Array<ICliInterfaceServiceSelectOptions> = [
 				{ label: "Use current directory (local repository)", value: "local" },
 				{ label: "Provide Git repository URL", value: "remote" },
 			];
@@ -657,7 +658,7 @@ export class GenerateReadmeCommand {
 	 * @returns {Promise<string>} Selected language
 	 */
 	private async selectLanguage(existingConfig: IConfig, useExistingConfig: boolean): Promise<string> {
-		const languages: Array<ISelectOption> = [
+		const languages: Array<ICliInterfaceServiceSelectOptions> = [
 			{ label: "English", value: "en" },
 			{ label: "Spanish", value: "es" },
 			{ label: "French", value: "fr" },

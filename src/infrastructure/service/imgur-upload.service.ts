@@ -1,6 +1,6 @@
 import type { AxiosResponse } from "axios";
 
-import type { IImageUploadService } from "../../application/interface/image-upload-service.interface.js";
+import type { IImageUploadService } from "../../application/interface/image-upload-service.interface";
 
 import axios from "axios";
 import FormData from "form-data";

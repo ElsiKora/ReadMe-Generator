@@ -1,4 +1,4 @@
-import type { Badge, ELogoType, RepositoryInfo } from "../../domain/index.js";
+import type { Badge, ELogoType, RepositoryInfo } from "../../domain/index";
 
 /**
  * Interface for building README content

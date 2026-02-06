@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity.js";
+import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity";
 
 describe("RepositoryInfo Entity", () => {
 	describe("constructor", () => {
@@ -193,4 +193,4 @@ describe("RepositoryInfo Entity", () => {
 			expect(repoInfo.getOwner()).toBe("user@domain.com");
 		});
 	});
-}); 
+});

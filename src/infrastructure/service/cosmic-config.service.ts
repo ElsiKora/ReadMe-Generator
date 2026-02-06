@@ -1,16 +1,16 @@
 import type { PublicExplorer } from "cosmiconfig";
 
-import type { IConfigService } from "../../application/interface/config-service.interface.js";
-import type { IConfig } from "../../application/interface/config.interface.js";
-import type { IFileSystemService } from "../../application/interface/file-system-service.interface.js";
+import type { IConfigService } from "../../application/interface/config-service.interface";
+import type { IConfig } from "../../application/interface/config.interface";
+import type { IFileSystemService } from "../../application/interface/file-system-service.interface";
 
 import { cosmiconfig } from "cosmiconfig";
 import { stringify } from "javascript-stringify";
 import yaml from "yaml";
 
-import { CONFIG_FILE_DIRECTORY } from "../../application/constant/config-file-directory.constant.js";
-import { CONFIG_MODULE_NAME } from "../../application/constant/config-module-name.constant.js";
-import { JSON_INDENT_SPACES } from "../constant/formatting.constant.js";
+import { CONFIG_FILE_DIRECTORY } from "../../application/constant/config-file-directory.constant";
+import { CONFIG_MODULE_NAME } from "../../application/constant/config-module-name.constant";
+import { JSON_INDENT_SPACES } from "../constant/formatting.constant";
 
 /**
  * Implementation of ConfigService that uses cosmiconfig for configuration management.

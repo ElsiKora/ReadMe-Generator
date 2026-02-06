@@ -1,9 +1,9 @@
-import type { ILlmPromptContext } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { Badge } from "../../domain/index.js";
+import type { ILlmPromptContext } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { Badge } from "../../domain/index";
 
-import { KILOBYTE, MAX_FILE_CONTENT_LENGTH } from "../../domain/constant/file-scanning.constant.js";
-import { PREDEFINED_LIB_BADGES } from "../../domain/index.js";
+import { KILOBYTE, MAX_FILE_CONTENT_LENGTH } from "../../domain/constant/file-scanning.constant";
+import { PREDEFINED_LIB_BADGES } from "../../domain/index";
 
 /**
  * Service for building prompts for LLM services

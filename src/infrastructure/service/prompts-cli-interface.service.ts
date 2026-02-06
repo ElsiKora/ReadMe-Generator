@@ -1,4 +1,5 @@
-import type { ICliInterfaceService, ISelectOption } from "../../application/interface/cli-interface-service.interface.js";
+import type { ICliInterfaceServiceSelectOptions } from "../../application/interface/cli-interface-service-select-options.interface";
+import type { ICliInterfaceService } from "../../application/interface/cli-interface-service.interface";
 
 import chalk from "chalk";
 import prompts from "prompts";
@@ -92,22 +93,25 @@ export class PromptsCliInterface implements ICliInterfaceService {
 	}
 
 	/**
-	 * Show a select prompt
-	 * @template T
-	 * @param {string} message - The prompt message
-	 * @param {Array<ISelectOption<T>>} options - The options to select from
-	 * @returns {Promise<T>} Promise resolving to the selected value
+	 * Displays a single select prompt to the user.
+	 * @param {string} message - The message to display to the user
+	 * @param {Array<ICliInterfaceServiceSelectOptions>} options - Array of options to select from
+	 * @param {string} initialValue - Initial selected value
+	 * @returns {Promise<T>} Promise that resolves to the selected value
+	 * @template T - The type of the selected value
 	 */
-	async select<T = string>(message: string, options: Array<ISelectOption<T>>): Promise<T> {
-		const choices: Array<prompts.Choice> = options.map((opt: ISelectOption<T>) => ({
-			description: opt.hint,
+	async select<T>(message: string, options: Array<ICliInterfaceServiceSelectOptions>, initialValue?: string): Promise<T> {
+		const choices: Array<{ title: string; value: string }> = options.map((opt: ICliInterfaceServiceSelectOptions) => ({
 			title: opt.label,
 			value: opt.value,
 		}));
 
+		const initialIndex: number | undefined = initialValue ? choices.findIndex((choice: { title: string; value: string }) => choice.value === initialValue) : undefined;
+
 		const response: prompts.Answers<"value"> = await prompts(
 			{
 				choices,
+				initial: initialIndex === -1 ? 0 : initialIndex,
 				message,
 				name: "value",
 				type: "select",

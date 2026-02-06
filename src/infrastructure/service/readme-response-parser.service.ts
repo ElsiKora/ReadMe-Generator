@@ -1,8 +1,8 @@
-import type { ILlmPromptContext } from "../../application/interface/llm-service.interface.js";
-import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
+import type { ILlmPromptContext } from "../../application/interface/llm-service.interface";
+import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
 
-import { Badge, Readme } from "../../domain/index.js";
+import { Badge, Readme } from "../../domain/index";
 
 /**
  * Service for parsing LLM responses into README objects

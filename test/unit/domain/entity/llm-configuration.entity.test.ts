@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
-import { LLMConfiguration } from "../../../../src/domain/entity/llm-configuration.entity.js";
-import { ELLMProvider } from "../../../../src/domain/enum/llm-provider.enum.js";
+import { LLMConfiguration } from "../../../../src/domain/entity/llm-configuration.entity";
+import { ELLMProvider } from "../../../../src/domain/enum/llm-provider.enum";
 
 describe("LLMConfiguration Entity", () => {
 	it("should create a valid LLM configuration", () => {

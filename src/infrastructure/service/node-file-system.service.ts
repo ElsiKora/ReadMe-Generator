@@ -1,11 +1,11 @@
 import type { Stats } from "node:fs";
 
-import type { IFileSystemService } from "../../application/interface/file-system-service.interface.js";
+import type { IFileSystemService } from "../../application/interface/file-system-service.interface";
 
 import * as fs from "node:fs/promises";
 import path from "node:path";
 
-import { CODE_FILE_EXTENSIONS, DEFAULT_IGNORE_PATTERNS, DEFAULT_SCAN_DEPTH, SPECIAL_FILE_NAMES } from "../../domain/constant/file-scanning.constant.js";
+import { CODE_FILE_EXTENSIONS, DEFAULT_IGNORE_PATTERNS, DEFAULT_SCAN_DEPTH, SPECIAL_FILE_NAMES } from "../../domain/constant/file-scanning.constant";
 
 /**
  * Node.js implementation of file system service
