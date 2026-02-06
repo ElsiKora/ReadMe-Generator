@@ -41,7 +41,7 @@ export class ConfigureLLMUseCase {
 			}
 		}
 
-		// Select provider
+		// 1. Select provider
 		let provider: ELLMProvider;
 
 		if (savedProvider) {
@@ -58,9 +58,18 @@ export class ConfigureLLMUseCase {
 			]);
 		}
 
-		// Get authentication value
-		// eslint-disable-next-line @elsikora/no-secrets/no-pattern-match
-		let apiKeyValue: string = "";
+		// 2. Select model
+		let model: string;
+
+		if (savedModel && savedProvider === provider) {
+			model = savedModel;
+			this.CLI_INTERFACE.info(`Using saved model: ${model}`);
+		} else {
+			model = await this.selectModel(provider);
+		}
+
+		// 3. Get base URL for custom endpoints
+		let baseUrl: string | undefined;
 
 		// Define environment variable names
 		const environmentVariableNames: Record<string, string> = {
@@ -75,105 +84,23 @@ export class ConfigureLLMUseCase {
 		const environmentVariableName: string = environmentVariableNames[provider] ?? "";
 		const environmentApiKey: string | undefined = process.env[environmentVariableName];
 
-		// Constants for AWS Bedrock credential parsing
-		const AWS_BEDROCK_PARTS_COUNT: number = 3;
-		const AZURE_MIN_PARTS_COUNT: number = 2;
-		const AWS_REGION_INDEX: number = 0;
-		const AWS_ACCESS_KEY_INDEX: number = 1;
-		const AWS_SECRET_KEY_INDEX: number = 2;
-		const AZURE_ENDPOINT_INDEX: number = 0;
-		const AZURE_API_KEY_INDEX: number = 1;
-
 		if (provider === ELLMProvider.OLLAMA) {
-			// Ollama can use environment variable for host:port or default value
-			if (environmentApiKey?.trim()) {
-				this.CLI_INTERFACE.success(`Found Ollama configuration in environment variable: ${environmentVariableName}`);
-				apiKeyValue = environmentApiKey.trim();
-			} else {
-				apiKeyValue = "ollama-local";
-			}
-		} else if (provider === ELLMProvider.AWS_BEDROCK) {
-			// AWS Bedrock requires both access key ID and secret access key
-			if (environmentApiKey?.trim()) {
-				// Expected format: region|access-key-id|secret-access-key
-				const parts: Array<string> = environmentApiKey.trim().split("|");
-
-				if (parts.length === AWS_BEDROCK_PARTS_COUNT) {
-					this.CLI_INTERFACE.success(`Found AWS Bedrock credentials in environment variable: ${environmentVariableName}`);
-					apiKeyValue = JSON.stringify({
-						accessKeyId: parts[AWS_ACCESS_KEY_INDEX],
-						region: parts[AWS_REGION_INDEX],
-						secretAccessKey: parts[AWS_SECRET_KEY_INDEX],
-					});
-				} else {
-					this.CLI_INTERFACE.info(`Invalid AWS Bedrock credentials format in ${environmentVariableName}. Expected format: region|access-key-id|secret-access-key`);
-					const accessKeyId: string = await this.CLI_INTERFACE.prompt("Enter AWS Access Key ID:");
-					const secretAccessKey: string = await this.CLI_INTERFACE.prompt("Enter AWS Secret Access Key:");
-					const region: string = await this.CLI_INTERFACE.prompt("Enter AWS Region:", "us-east-1");
-
-					apiKeyValue = JSON.stringify({
-						accessKeyId,
-						region,
-						secretAccessKey,
-					});
-				}
-			} else {
-				this.CLI_INTERFACE.info(`AWS Bedrock credentials can be set in ${environmentVariableName} environment variable (format: region|access-key-id|secret-access-key)`);
-				const accessKeyId: string = await this.CLI_INTERFACE.prompt("Enter AWS Access Key ID:");
-				const secretAccessKey: string = await this.CLI_INTERFACE.prompt("Enter AWS Secret Access Key:");
-				const region: string = await this.CLI_INTERFACE.prompt("Enter AWS Region:", "us-east-1");
-
-				apiKeyValue = JSON.stringify({
-					accessKeyId,
-					region,
-					secretAccessKey,
-				});
-			}
-		} else {
-			// For other providers, check environment variable first
-			if (environmentApiKey?.trim()) {
-				this.CLI_INTERFACE.success(`Found API key in environment variable: ${environmentVariableName}`);
-				apiKeyValue = environmentApiKey.trim();
-			} else {
-				this.CLI_INTERFACE.info(`API key can be set in ${environmentVariableName} environment variable`);
-				apiKeyValue = await this.CLI_INTERFACE.prompt(`Enter ${provider} API key:`);
-			}
-		}
-
-		// Select model based on provider
-		let model: string;
-
-		if (savedModel && savedProvider === provider) {
-			model = savedModel;
-			this.CLI_INTERFACE.info(`Using saved model: ${model}`);
-		} else {
-			model = await this.selectModel(provider);
-		}
-
-		// Get base URL for custom endpoints
-		let baseUrl: string | undefined;
-
-		if (provider === ELLMProvider.OLLAMA) {
-			// For Ollama, check if base URL is part of the environment variable
 			if (environmentApiKey?.includes("://")) {
-				// If environment variable contains a URL, use it as base URL
 				baseUrl = environmentApiKey;
 			} else {
 				const defaultUrl: string = "http://localhost:11434";
 				baseUrl = await this.CLI_INTERFACE.prompt("Enter base URL:", defaultUrl);
 			}
 		} else if (provider === ELLMProvider.AZURE_OPENAI) {
-			// Azure OpenAI can have endpoint|api-key|deployment-name format
+			// Constants for Azure credential parsing
+			const AZURE_MIN_PARTS_COUNT: number = 2;
+			const AZURE_ENDPOINT_INDEX: number = 0;
+
 			if (environmentApiKey?.includes("|")) {
 				const parts: Array<string> = environmentApiKey.split("|");
 
 				if (parts.length >= AZURE_MIN_PARTS_COUNT && parts[AZURE_ENDPOINT_INDEX]?.includes("://")) {
 					baseUrl = parts[AZURE_ENDPOINT_INDEX];
-
-					if (parts[AZURE_API_KEY_INDEX]) {
-						apiKeyValue = parts[AZURE_API_KEY_INDEX];
-					}
-
 					this.CLI_INTERFACE.success("Using Azure OpenAI endpoint from environment variable");
 				} else {
 					baseUrl = await this.CLI_INTERFACE.prompt("Enter base URL:");
@@ -182,6 +109,10 @@ export class ConfigureLLMUseCase {
 				baseUrl = await this.CLI_INTERFACE.prompt("Enter base URL:");
 			}
 		}
+
+		// 4. Get API key (check env first, then prompt with masked input)
+		// eslint-disable-next-line @elsikora/no-secrets/no-pattern-match
+		const apiKeyValue: string = await this.resolveApiKey(provider, environmentVariableName, environmentApiKey);
 
 		const llmConfig: LLMConfiguration = new LLMConfiguration(apiKeyValue, provider, model, baseUrl);
 
@@ -195,6 +126,85 @@ export class ConfigureLLMUseCase {
 		}
 
 		return llmConfig;
+	}
+
+	/**
+	 * Resolve API key: check environment variable first, then prompt user with masked input
+	 * @param {ELLMProvider} provider - The LLM provider
+	 * @param {string} environmentVariableName - The environment variable name
+	 * @param {string | undefined} environmentApiKey - The environment variable value
+	 * @returns {Promise<string>} The resolved API key value
+	 */
+	private async resolveApiKey(provider: ELLMProvider, environmentVariableName: string, environmentApiKey: string | undefined): Promise<string> {
+		// Constants for AWS Bedrock credential parsing
+		const AWS_BEDROCK_PARTS_COUNT: number = 3;
+		const AWS_REGION_INDEX: number = 0;
+		const AWS_ACCESS_KEY_INDEX: number = 1;
+		const AWS_SECRET_KEY_INDEX: number = 2;
+		const AZURE_MIN_PARTS_COUNT: number = 2;
+		const AZURE_API_KEY_INDEX: number = 1;
+
+		if (provider === ELLMProvider.OLLAMA) {
+			if (environmentApiKey?.trim()) {
+				this.CLI_INTERFACE.success(`Found Ollama configuration in environment variable: ${environmentVariableName}`);
+
+				return environmentApiKey.trim();
+			}
+
+			return "ollama-local";
+		}
+
+		if (provider === ELLMProvider.AWS_BEDROCK) {
+			if (environmentApiKey?.trim()) {
+				const parts: Array<string> = environmentApiKey.trim().split("|");
+
+				if (parts.length === AWS_BEDROCK_PARTS_COUNT) {
+					this.CLI_INTERFACE.success(`Found AWS Bedrock credentials in environment variable: ${environmentVariableName}`);
+
+					return JSON.stringify({
+						accessKeyId: parts[AWS_ACCESS_KEY_INDEX],
+						region: parts[AWS_REGION_INDEX],
+						secretAccessKey: parts[AWS_SECRET_KEY_INDEX],
+					});
+				}
+
+				this.CLI_INTERFACE.info(`Invalid AWS Bedrock credentials format in ${environmentVariableName}. Expected format: region|access-key-id|secret-access-key`);
+			} else {
+				this.CLI_INTERFACE.info(`AWS Bedrock credentials can be set in ${environmentVariableName} environment variable (format: region|access-key-id|secret-access-key)`);
+			}
+
+			const accessKeyId: string = await this.CLI_INTERFACE.password("Enter AWS Access Key ID:");
+			const secretAccessKey: string = await this.CLI_INTERFACE.password("Enter AWS Secret Access Key:");
+			const region: string = await this.CLI_INTERFACE.prompt("Enter AWS Region:", "us-east-1");
+
+			return JSON.stringify({
+				accessKeyId,
+				region,
+				secretAccessKey,
+			});
+		}
+
+		if (provider === ELLMProvider.AZURE_OPENAI && environmentApiKey?.includes("|")) {
+			const parts: Array<string> = environmentApiKey.split("|");
+
+			if (parts.length >= AZURE_MIN_PARTS_COUNT && parts[AZURE_API_KEY_INDEX]) {
+				this.CLI_INTERFACE.success(`Found API key in environment variable: ${environmentVariableName}`);
+
+				return parts[AZURE_API_KEY_INDEX];
+			}
+		}
+
+		// For all other providers, check environment variable first
+		if (environmentApiKey?.trim()) {
+			this.CLI_INTERFACE.success(`Found API key in environment variable: ${environmentVariableName}`);
+
+			return environmentApiKey.trim();
+		}
+
+		// Prompt for API key with masked input
+		this.CLI_INTERFACE.info(`API key can be set in ${environmentVariableName} environment variable`);
+
+		return this.CLI_INTERFACE.password(`Enter ${provider} API key:`);
 	}
 
 	private async selectModel(provider: ELLMProvider): Promise<string> {

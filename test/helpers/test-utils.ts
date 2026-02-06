@@ -94,6 +94,7 @@ export function createMockCliInterface(): ICliInterfaceService {
 		confirm: vi.fn().mockResolvedValue(true),
 		error: vi.fn(),
 		info: vi.fn(),
+		password: vi.fn().mockResolvedValue("test-api-key"),
 		prompt: vi.fn().mockResolvedValue("test-input"),
 		select: vi.fn().mockResolvedValue("test-selection"),
 		success: vi.fn(),

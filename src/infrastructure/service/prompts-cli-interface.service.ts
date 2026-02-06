@@ -59,6 +59,32 @@ export class PromptsCliInterface implements ICliInterfaceService {
 	}
 
 	/**
+	 * Show a masked password input prompt
+	 * @param {string} message - The prompt message
+	 * @param {Function} validate - Optional validation function that returns true or error message
+	 * @returns {Promise<string>} Promise resolving to the user input (hidden during typing)
+	 */
+	async password(message: string, validate?: (value: string) => boolean | string): Promise<string> {
+		const promptOptions: prompts.PromptObject<"value"> = {
+			message,
+			name: "value",
+			type: "password",
+		};
+
+		if (validate) {
+			(promptOptions as { validate: (value: string) => boolean | string } & prompts.PromptObject<"value">).validate = validate;
+		}
+
+		const response: prompts.Answers<"value"> = await prompts(promptOptions, {
+			onCancel: () => {
+				this.handleCancellation();
+			},
+		});
+
+		return (response.value as string) ?? "";
+	}
+
+	/**
 	 * Show a text input prompt
 	 * @param {string} message - The prompt message
 	 * @param {string} withDefaultValue - The default value

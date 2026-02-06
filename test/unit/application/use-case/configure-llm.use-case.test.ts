@@ -14,6 +14,7 @@ describe("ConfigureLLMUseCase", () => {
 			confirm: vi.fn(),
 			error: vi.fn(),
 			info: vi.fn(),
+			password: vi.fn(),
 			prompt: vi.fn(),
 			select: vi.fn(),
 			success: vi.fn(),
@@ -31,11 +32,13 @@ describe("ConfigureLLMUseCase", () => {
 	});
 
 	describe("execute", () => {
+		// New order: Provider -> Model -> API key
+
 		it("should configure OpenAI provider", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("test-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EOpenAIModel.GPT_5_2);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("test-api-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -50,8 +53,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should configure Anthropic provider", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.ANTHROPIC);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("anthropic-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EAnthropicModel.CLAUDE_SONNET_4_5);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("anthropic-api-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -65,8 +68,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should configure Google provider", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.GOOGLE);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("google-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EGoogleModel.GEMINI_2_5_FLASH);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("google-api-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -78,11 +81,11 @@ describe("ConfigureLLMUseCase", () => {
 		});
 
 		it("should configure Azure OpenAI provider with base URL", async () => {
-			// Arrange
+			// Arrange: Provider -> Model -> Base URL -> API key
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AZURE_OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("azure-api-key").mockResolvedValueOnce("https://myazure.openai.azure.com");
-			// Mock model selection
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce("gpt-4-deployment");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("https://myazure.openai.azure.com");
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("azure-api-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -95,9 +98,10 @@ describe("ConfigureLLMUseCase", () => {
 		});
 
 		it("should configure AWS Bedrock provider with predefined model", async () => {
-			// Arrange
+			// Arrange: Provider -> Model -> API key (password for access + secret, prompt for region)
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AWS_BEDROCK).mockResolvedValueOnce(EAWSBedrockModel.CLAUDE_SONNET_4_5);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("aws-access-key-id").mockResolvedValueOnce("aws-secret-access-key").mockResolvedValueOnce("us-east-1");
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("aws-access-key-id").mockResolvedValueOnce("aws-secret-access-key");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("us-east-1");
 
 			// Act
 			const result = await useCase.execute();
@@ -112,9 +116,10 @@ describe("ConfigureLLMUseCase", () => {
 		});
 
 		it("should configure AWS Bedrock provider with custom model", async () => {
-			// Arrange
+			// Arrange: Provider -> Model (custom) -> custom model prompt -> API key
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AWS_BEDROCK).mockResolvedValueOnce("custom");
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("aws-access-key-id").mockResolvedValueOnce("aws-secret-access-key").mockResolvedValueOnce("us-west-2").mockResolvedValueOnce("custom.model.id");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("custom.model.id").mockResolvedValueOnce("us-west-2");
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("aws-access-key-id").mockResolvedValueOnce("aws-secret-access-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -126,18 +131,17 @@ describe("ConfigureLLMUseCase", () => {
 		});
 
 		it("should configure Ollama provider without API key", async () => {
-			// Arrange
+			// Arrange: Provider -> Model -> Base URL (no API key prompt for Ollama)
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OLLAMA);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("http://localhost:11434");
-			// Mock model selection
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce("llama3.3");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("http://localhost:11434");
 
 			// Act
 			const result = await useCase.execute();
 
 			// Assert
 			expect(result.getProvider()).toBe(ELLMProvider.OLLAMA);
-			expect(result.getApiKey().getValue()).toBe("ollama-local"); // Placeholder value for Ollama
+			expect(result.getApiKey().getValue()).toBe("ollama-local");
 			expect(result.getModel()).toBe("llama3.3");
 			expect(result.getBaseUrl()).toBe("http://localhost:11434");
 		});
@@ -145,9 +149,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should use default values when empty input provided", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OLLAMA);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("http://localhost:11434");
-			// Mock model selection
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce("llama3.3");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("http://localhost:11434");
 
 			// Act
 			const result = await useCase.execute();
@@ -162,13 +165,13 @@ describe("ConfigureLLMUseCase", () => {
 		it("should show all OpenAI models", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("test-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EOpenAIModel.GPT_5_2);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("test-api-key");
 
 			// Act
 			await useCase.execute();
 
-			// Assert
+			// Assert - model selection is now the second select call
 			const modelSelectCall = vi.mocked(mockCliInterface.select).mock.calls[1];
 			expect(modelSelectCall[0]).toBe("Select OpenAI model:");
 			expect(modelSelectCall[1]).toHaveLength(11);
@@ -180,8 +183,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should show all Anthropic models", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.ANTHROPIC);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("test-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EAnthropicModel.CLAUDE_SONNET_4_5);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("test-api-key");
 
 			// Act
 			await useCase.execute();
@@ -196,8 +199,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should show all Google models", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.GOOGLE);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("test-api-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EGoogleModel.GEMINI_2_5_FLASH);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("test-api-key");
 
 			// Act
 			await useCase.execute();
@@ -212,7 +215,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should show AWS Bedrock models with custom option", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AWS_BEDROCK).mockResolvedValueOnce(EAWSBedrockModel.CLAUDE_SONNET_4_5);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("api-key");
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("access-key").mockResolvedValueOnce("secret-key");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("us-east-1");
 
 			// Act
 			await useCase.execute();
@@ -231,7 +235,6 @@ describe("ConfigureLLMUseCase", () => {
 			// Arrange
 			const unknownProvider = "unknown-provider" as ELLMProvider;
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(unknownProvider);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("api-key");
 
 			// Act & Assert
 			await expect(useCase.execute()).rejects.toThrow(`Unhandled provider: ${unknownProvider}`);
@@ -240,8 +243,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should handle API key with spaces", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("  api-key-with-spaces  ");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EOpenAIModel.GPT_5_2);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("  api-key-with-spaces  ");
 
 			// Act
 			const result = await useCase.execute();
@@ -253,8 +256,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should throw error for empty API key when required", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EOpenAIModel.GPT_5_2);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("");
 
 			// Act & Assert
 			await expect(useCase.execute()).rejects.toThrow("API key cannot be empty");
@@ -274,7 +277,7 @@ describe("ConfigureLLMUseCase", () => {
 			// Assert
 			expect(result.getApiKey().getValue()).toBe("env-openai-key");
 			expect(mockCliInterface.success).toHaveBeenCalledWith("Found API key in environment variable: OPENAI_API_KEY");
-			expect(mockCliInterface.prompt).not.toHaveBeenCalledWith("Enter openai API key:");
+			expect(mockCliInterface.password).not.toHaveBeenCalled();
 		});
 
 		it("should use Anthropic API key from environment variable", async () => {
@@ -311,7 +314,8 @@ describe("ConfigureLLMUseCase", () => {
 			// Arrange
 			process.env.AWS_BEDROCK_API_KEY = "invalid-format";
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AWS_BEDROCK).mockResolvedValueOnce(EAWSBedrockModel.CLAUDE_SONNET_4_5);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("access-key-id").mockResolvedValueOnce("secret-access-key").mockResolvedValueOnce("us-west-2");
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("access-key-id").mockResolvedValueOnce("secret-access-key");
+			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("us-west-2");
 
 			// Act
 			const result = await useCase.execute();
@@ -326,7 +330,7 @@ describe("ConfigureLLMUseCase", () => {
 			// Arrange
 			process.env.AZURE_OPENAI_API_KEY = "https://myazure.openai.azure.com|azure-key|deployment";
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.AZURE_OPENAI);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("gpt-4-deployment");
+			vi.mocked(mockCliInterface.select).mockResolvedValueOnce("gpt-4-deployment");
 
 			// Act
 			const result = await useCase.execute();
@@ -340,8 +344,8 @@ describe("ConfigureLLMUseCase", () => {
 		it("should prompt for API key when environment variable is not set", async () => {
 			// Arrange
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.GOOGLE);
-			vi.mocked(mockCliInterface.prompt).mockResolvedValueOnce("manual-google-key");
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(EGoogleModel.GEMINI_2_5_FLASH);
+			vi.mocked(mockCliInterface.password).mockResolvedValueOnce("manual-google-key");
 
 			// Act
 			const result = await useCase.execute();
@@ -355,7 +359,6 @@ describe("ConfigureLLMUseCase", () => {
 			// Arrange
 			process.env.OLLAMA_API_KEY = "http://remote-ollama:11434";
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce(ELLMProvider.OLLAMA);
-			// Mock model selection
 			vi.mocked(mockCliInterface.select).mockResolvedValueOnce("llama3.3");
 
 			// Act
@@ -366,7 +369,7 @@ describe("ConfigureLLMUseCase", () => {
 			expect(result.getApiKey().getValue()).toBe("http://remote-ollama:11434");
 			expect(result.getBaseUrl()).toBe("http://remote-ollama:11434");
 			expect(mockCliInterface.success).toHaveBeenCalledWith("Found Ollama configuration in environment variable: OLLAMA_API_KEY");
-			expect(mockCliInterface.prompt).toHaveBeenCalledTimes(0); // Should not prompt for baseUrl
+			expect(mockCliInterface.prompt).toHaveBeenCalledTimes(0);
 		});
 	});
 });

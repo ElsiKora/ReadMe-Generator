@@ -26,6 +26,15 @@ export interface ICliInterfaceService {
 	info(message: string): void;
 
 	/**
+	 * Displays a masked password input prompt to the user.
+	 * Input characters are hidden/masked in the console.
+	 * @param {string} message - The prompt message
+	 * @param {Function} validate - Optional validation function that returns true or error message
+	 * @returns {Promise<string>} Promise resolving to the user input
+	 */
+	password(message: string, validate?: (value: string) => boolean | string): Promise<string>;
+
+	/**
 	 * Displays a text input prompt to the user.
 	 * @param {string} message - The prompt message
 	 * @param {string} defaultValue - The default value
