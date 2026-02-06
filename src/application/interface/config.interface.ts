@@ -55,6 +55,11 @@ export interface IConfig {
 	scanDepth?: number;
 
 	/**
+	 * Whether to include contributing guidelines section
+	 */
+	shouldIncludeContributing?: boolean;
+
+	/**
 	 * Whether to include contributors section
 	 */
 	shouldIncludeContributors?: boolean;

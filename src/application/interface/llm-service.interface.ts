@@ -21,6 +21,7 @@ export interface ILlmPromptContext {
 		path: string;
 		size: number;
 	}>;
+	shouldIncludeContributing?: boolean;
 	shouldIncludeContributors?: boolean;
 	shouldIncludeGithubBadges?: boolean;
 }

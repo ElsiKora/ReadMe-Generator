@@ -10,6 +10,7 @@ export default {
 	repositoryOwner: "ElsiKora",
 	repositorySource: "local",
 	scanDepth: 7,
+	shouldIncludeContributing: false,
 	shouldIncludeContributors: false,
 	shouldIncludeGithubBadges: false,
 	shouldSkipConfirmations: true,
