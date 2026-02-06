@@ -1,32 +1,33 @@
 import type { IContainer } from "@elsikora/cladi";
 
-import type { ICliInterfaceService } from "../../application/interface/cli-interface-service.interface.js";
-import type { IConfigService } from "../../application/interface/config-service.interface.js";
-import type { IFileSystemService } from "../../application/interface/file-system-service.interface.js";
-import type { ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
+import type { ICliInterfaceService } from "../../application/interface/cli-interface-service.interface";
+import type { IConfigService } from "../../application/interface/config-service.interface";
+import type { IFileSystemService } from "../../application/interface/file-system-service.interface";
+import type { ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
 
 import { createContainer } from "@elsikora/cladi";
 
-import { ConfigureLLMUseCase as ConfigureLLMUseCaseImpl } from "../../application/use-case/configure-llm.use-case.js";
-import { GenerateReadmeUseCase as GenerateReadmeUseCaseImpl } from "../../application/use-case/generate-readme.use-case.js";
-import { GitRepositoryService } from "../git/git-repository.service.js";
-import { AnthropicLlmService } from "../llm/anthropic-llm.service.js";
-import { AWSBedrockLlmService } from "../llm/aws-bedrock-llm.service.js";
-import { AzureOpenAILlmService } from "../llm/azure-openai-llm.service.js";
-import { GoogleLlmService } from "../llm/google-llm.service.js";
-import { OllamaLlmService } from "../llm/ollama-llm.service.js";
-import { OpenAILlmService } from "../llm/openai-llm.service.js";
-import { CosmicConfigService } from "../service/cosmic-config.service.js";
-import { GitCloneService } from "../service/git-clone.service.js";
-import { ImgurImageUploadService } from "../service/imgur-upload.service.js";
-import { NodeFileSystemService } from "../service/node-file-system.service.js";
-import { PromptBuilderService } from "../service/prompt-builder.service.js";
-import { PromptsCliInterface } from "../service/prompts-cli-interface.service.js";
-import { ReadmeBuilder } from "../service/readme-builder.service.js";
-import { ReadmeResponseParserService } from "../service/readme-response-parser.service.js";
+import { ConfigureLLMUseCase as ConfigureLLMUseCaseImpl } from "../../application/use-case/configure-llm.use-case";
+import { GenerateReadmeUseCase as GenerateReadmeUseCaseImpl } from "../../application/use-case/generate-readme.use-case";
+import { GitRepositoryService } from "../git/git-repository.service";
+import { AnthropicLlmService } from "../llm/anthropic-llm.service";
+import { AWSBedrockLlmService } from "../llm/aws-bedrock-llm.service";
+import { AzureOpenAILlmService } from "../llm/azure-openai-llm.service";
+import { GoogleLlmService } from "../llm/google-llm.service";
+import { OllamaLlmService } from "../llm/ollama-llm.service";
+import { OpenAILlmService } from "../llm/openai-llm.service";
+import { CosmicConfigService } from "../service/cosmic-config.service";
+import { GitCloneService } from "../service/git-clone.service";
+import { ImgurImageUploadService } from "../service/imgur-upload.service";
+import { InfrastructureDetectionService } from "../service/infrastructure-detection.service";
+import { NodeFileSystemService } from "../service/node-file-system.service";
+import { PromptBuilderService } from "../service/prompt-builder.service";
+import { PromptsCliInterface } from "../service/prompts-cli-interface.service";
+import { ReadmeBuilder } from "../service/readme-builder.service";
+import { ReadmeResponseParserService } from "../service/readme-response-parser.service";
 
 // Service tokens
 export const FileSystemServiceToken: symbol = Symbol("FileSystemService");
@@ -35,6 +36,7 @@ export const GitRepositoryToken: symbol = Symbol("GitRepository");
 export const GitCloneServiceToken: symbol = Symbol("GitCloneService");
 export const LlmServicesToken: symbol = Symbol("LlmServices");
 export const ImageUploadServiceToken: symbol = Symbol("ImageUploadService");
+export const InfrastructureDetectionServiceToken: symbol = Symbol("InfrastructureDetectionService");
 export const ReadmeBuilderToken: symbol = Symbol("ReadmeBuilder");
 export const PromptBuilderServiceToken: symbol = Symbol("PromptBuilderService");
 export const ReadmeResponseParserServiceToken: symbol = Symbol("ReadmeResponseParserService");
@@ -58,6 +60,7 @@ export function createAppContainer(): IContainer {
 	container.register(GitCloneServiceToken, new GitCloneService());
 	container.register(ReadmeBuilderToken, new ReadmeBuilder());
 	container.register(ImageUploadServiceToken, new ImgurImageUploadService());
+	container.register(InfrastructureDetectionServiceToken, new InfrastructureDetectionService());
 
 	// Register Config Service with factory function
 	container.register(

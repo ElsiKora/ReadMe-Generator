@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { GenerateReadmeUseCase } from "../../../../src/application/use-case/generate-readme.use-case.js";
-import type { ILlmService } from "../../../../src/application/interface/llm-service.interface.js";
-import { LLMConfiguration } from "../../../../src/domain/entity/llm-configuration.entity.js";
-import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity.js";
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
-import { ELLMProvider } from "../../../../src/domain/enum/llm-provider.enum.js";
+import { GenerateReadmeUseCase } from "../../../../src/application/use-case/generate-readme.use-case";
+import type { ILlmService } from "../../../../src/application/interface/llm-service.interface";
+import { LLMConfiguration } from "../../../../src/domain/entity/llm-configuration.entity";
+import { RepositoryInfo } from "../../../../src/domain/entity/repository-info.entity";
+import { Readme } from "../../../../src/domain/entity/readme.entity";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
+import { ELLMProvider } from "../../../../src/domain/enum/llm-provider.enum";
 
 describe("GenerateReadmeUseCase", () => {
 	let mockLlmService: ILlmService;

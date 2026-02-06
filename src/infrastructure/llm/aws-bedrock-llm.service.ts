@@ -1,17 +1,17 @@
 import type { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
-import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface.js";
-import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
-import type { ELLMProvider } from "../../domain/enum/llm-provider.enum.js";
-import type { LLMConfiguration } from "../../domain/index.js";
-import type { Readme } from "../../domain/index.js";
+import type { ILlmPromptContext, ILlmService } from "../../application/interface/llm-service.interface";
+import type { IPromptBuilder } from "../../application/interface/prompt-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
+import type { ELLMProvider } from "../../domain/enum/llm-provider.enum";
+import type { LLMConfiguration } from "../../domain/index";
+import type { Readme } from "../../domain/index";
 
 import { BedrockRuntimeClient as BedrockRuntimeClientImpl, InvokeModelCommand as InvokeModelCommandImpl } from "@aws-sdk/client-bedrock-runtime";
 
-import { DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant.js";
-import { EAWSBedrockModel } from "../../domain/enum/aws-bedrock-model.enum.js";
-import { AWS_BEDROCK_MAX_TOKENS } from "../constant/llm.constant.js";
+import { DEFAULT_TEMPERATURE } from "../../domain/constant/numeric.constant";
+import { EAWSBedrockModel } from "../../domain/enum/aws-bedrock-model.enum";
+import { AWS_BEDROCK_MAX_TOKENS } from "../constant/llm.constant";
 
 /**
  * AWS Bedrock implementation of the LLM service
@@ -40,7 +40,7 @@ export class AWSBedrockLlmService implements ILlmService {
 			region,
 		});
 
-		const modelId: string = configuration.getModel() ?? EAWSBedrockModel.CLAUDE_3_5_SONNET;
+		const modelId: string = configuration.getModel() ?? EAWSBedrockModel.CLAUDE_SONNET_4_5;
 
 		const systemPrompt: string = this.PROMPT_BUILDER.buildSystemPrompt(context);
 		const userPrompt: string = this.PROMPT_BUILDER.buildUserPrompt(context);

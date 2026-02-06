@@ -1,11 +1,15 @@
-import type { LLMConfiguration, Readme } from "../../domain/index.js";
-import type { ILlmPromptContext, ILlmService } from "../interface/llm-service.interface.js";
+import type { LLMConfiguration, Readme } from "../../domain/index";
+import type { ILlmPromptContext, ILlmService } from "../interface/llm-service.interface";
 
 /**
  * Use case for generating a README
  */
 export class GenerateReadmeUseCase {
-	constructor(private readonly llmServices: Array<ILlmService>) {}
+	private readonly LLM_SERVICES: Array<ILlmService>;
+
+	constructor(llmServices: Array<ILlmService>) {
+		this.LLM_SERVICES = llmServices;
+	}
 
 	/**
 	 * Execute the use case
@@ -15,7 +19,7 @@ export class GenerateReadmeUseCase {
 	 */
 	async execute(context: ILlmPromptContext, configuration: LLMConfiguration): Promise<Readme> {
 		// Find a service that supports the configuration
-		const llmService: ILlmService | undefined = this.llmServices.find((service: ILlmService) => service.supports(configuration));
+		const llmService: ILlmService | undefined = this.LLM_SERVICES.find((service: ILlmService) => service.supports(configuration));
 
 		if (!llmService) {
 			throw new Error(`No LLM service found for provider: ${configuration.getProvider()}`);

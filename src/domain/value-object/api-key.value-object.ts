@@ -1,3 +1,5 @@
+import { MIN_API_KEY_LENGTH, REDACTED_LENGTH } from "../constant/numeric.constant";
+
 /**
  * Value object representing an API key
  */
@@ -14,7 +16,7 @@ export class ApiKey {
 
 	/**
 	 * Check if two API keys are equal
-	 * @param {ApiKey} other - The other API key to compare
+	 * @param {ApiKey} other - The other API key to compare with
 	 * @returns {boolean} True if the API keys are equal
 	 */
 	equals(other: ApiKey): boolean {
@@ -23,9 +25,27 @@ export class ApiKey {
 
 	/**
 	 * Get the API key value
-	 * @returns {string} The API key
+	 * @returns {string} The API key value
 	 */
 	getValue(): string {
 		return this.VALUE;
+	}
+
+	/**
+	 * Check if the API key is valid
+	 * @returns {boolean} True if the API key appears to be valid
+	 */
+	isValid(): boolean {
+		return this.VALUE.length > MIN_API_KEY_LENGTH && !this.VALUE.includes("your-api-key");
+	}
+
+	/**
+	 * Get a redacted version of the API key for display
+	 * @returns {string} Redacted API key
+	 */
+	toRedacted(): string {
+		if (this.VALUE.length <= REDACTED_LENGTH) return "****";
+
+		return this.VALUE.slice(0, REDACTED_LENGTH) + "..." + this.VALUE.slice(-REDACTED_LENGTH);
 	}
 }

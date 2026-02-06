@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
 
 describe("Badge Value Object", () => {
 	describe("constructor", () => {
@@ -145,4 +145,4 @@ describe("Badge Value Object", () => {
 			expect(url).toContain(encodeURIComponent(longName));
 		});
 	});
-}); 
+});

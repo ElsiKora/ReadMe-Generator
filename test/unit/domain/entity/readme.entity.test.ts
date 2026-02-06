@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { Readme } from "../../../../src/domain/entity/readme.entity.js";
-import { Badge } from "../../../../src/domain/value-object/badge.value-object.js";
+import { Readme } from "../../../../src/domain/entity/readme.entity";
+import { Badge } from "../../../../src/domain/value-object/badge.value-object";
 
 describe("Readme Entity", () => {
 	describe("constructor", () => {
@@ -20,6 +20,12 @@ describe("Readme Entity", () => {
 				faq: "Q: What is this?\nA: A project",
 				license: "MIT",
 				content: "# Full README content",
+				highlights: ["Fast", "Reliable"],
+				techStack: { Language: ["TypeScript"], Runtime: ["Node.js"] },
+				prerequisites: ["Node.js >= 18"],
+				contributing: "Fork and submit a PR",
+				acknowledgments: "Thanks to all contributors",
+				mermaidDiagrams: { architecture: "flowchart TD\n  A-->B" },
 			};
 
 			// Act
@@ -38,6 +44,12 @@ describe("Readme Entity", () => {
 			expect(readme.getFaq()).toBe(data.faq);
 			expect(readme.getLicense()).toBe(data.license);
 			expect(readme.getContent()).toBe(data.content);
+			expect(readme.getHighlights()).toEqual(data.highlights);
+			expect(readme.getTechStack()).toEqual(data.techStack);
+			expect(readme.getPrerequisites()).toEqual(data.prerequisites);
+			expect(readme.getContributing()).toBe(data.contributing);
+			expect(readme.getAcknowledgments()).toBe(data.acknowledgments);
+			expect(readme.getMermaidDiagrams()).toEqual(data.mermaidDiagrams);
 		});
 
 		it("should create a README with minimal properties", () => {
@@ -73,6 +85,13 @@ describe("Readme Entity", () => {
 			expect(readme.getFaq()).toBe("");
 			expect(readme.getLicense()).toBe("");
 			expect(readme.getContent()).toBe("");
+			// New fields should default gracefully
+			expect(readme.getHighlights()).toEqual([]);
+			expect(readme.getTechStack()).toEqual({});
+			expect(readme.getPrerequisites()).toEqual([]);
+			expect(readme.getContributing()).toBe("");
+			expect(readme.getAcknowledgments()).toBe("");
+			expect(readme.getMermaidDiagrams()).toBeUndefined();
 		});
 	});
 
@@ -85,10 +104,7 @@ describe("Readme Entity", () => {
 				shortDescription: "Test description",
 				longDescription: "Detailed test description",
 				logoUrl: "https://test.com/logo.png",
-				badges: [
-					new Badge("JavaScript", "yellow", "javascript", "black"),
-					new Badge("Node.js", "green", "node.js", "white"),
-				],
+				badges: [new Badge("JavaScript", "yellow", "javascript", "black"), new Badge("Node.js", "green", "node.js", "white")],
 				features: ["Fast", "Reliable", "Scalable"],
 				installation: "npm install test-project",
 				usage: "const test = require('test-project');",
@@ -96,6 +112,10 @@ describe("Readme Entity", () => {
 				faq: "Q: Is it tested?\nA: Yes, extensively",
 				license: "Apache-2.0",
 				content: "# Test Project\n\nThis is a test project.",
+				highlights: ["Blazing fast", "Type-safe"],
+				techStack: { Language: ["TypeScript"] },
+				prerequisites: ["Node.js >= 18"],
+				mermaidDiagrams: { architecture: "flowchart TD\n  A-->B", dataFlow: "sequenceDiagram\n  A->>B: Hello" },
 			});
 		});
 
@@ -149,5 +169,23 @@ describe("Readme Entity", () => {
 		it("should return correct content", () => {
 			expect(readme.getContent()).toContain("Test Project");
 		});
+
+		it("should return correct highlights", () => {
+			expect(readme.getHighlights()).toEqual(["Blazing fast", "Type-safe"]);
+		});
+
+		it("should return correct tech stack", () => {
+			expect(readme.getTechStack()).toEqual({ Language: ["TypeScript"] });
+		});
+
+		it("should return correct prerequisites", () => {
+			expect(readme.getPrerequisites()).toEqual(["Node.js >= 18"]);
+		});
+
+		it("should return correct mermaid diagrams", () => {
+			const diagrams = readme.getMermaidDiagrams();
+			expect(diagrams?.architecture).toContain("flowchart TD");
+			expect(diagrams?.dataFlow).toContain("sequenceDiagram");
+		});
 	});
-}); 
+});

@@ -1,6 +1,6 @@
-import type { Badge } from "../value-object/badge.value-object.js";
+import type { Badge } from "../value-object/badge.value-object";
 
-import { Badge as BadgeClass } from "../value-object/badge.value-object.js";
+import { Badge as BadgeClass } from "../value-object/badge.value-object";
 
 /**
  * Predefined library badges that should be included for all repositories

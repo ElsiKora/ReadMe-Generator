@@ -1,8 +1,8 @@
-import type { ILlmPromptContext } from "../../application/interface/llm-service.interface.js";
-import type { IReadmeBuilder } from "../../application/interface/readme-builder.interface.js";
-import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface.js";
+import type { ILlmPromptContext } from "../../application/interface/llm-service.interface";
+import type { IMermaidDiagrams, IReadmeBuilder } from "../../application/interface/readme-builder.interface";
+import type { IReadmeResponseParser } from "../../application/interface/readme-response-parser.interface";
 
-import { Badge, Readme } from "../../domain/index.js";
+import { Badge, Readme } from "../../domain/index";
 
 /**
  * Service for parsing LLM responses into README objects
@@ -24,20 +24,29 @@ export class ReadmeResponseParserService implements IReadmeResponseParser {
 	parseResponse(content: string, context: ILlmPromptContext): Readme {
 		try {
 			interface IReadmeJson {
+				acknowledgments?: string;
 				badges: Array<{
 					color: string;
 					logo: string;
 					logoColor: string;
 					name: string;
 				}>;
+				contributing?: string;
 				faq: string;
 				features: Array<string>;
+				highlights?: Array<string>;
 				installation: string;
 				license: string;
 				logoUrl: string;
 				long_description: string;
+				mermaid_diagrams?: {
+					architecture?: string;
+					data_flow?: string;
+				};
+				prerequisites?: Array<string>;
 				roadmap: string;
 				short_description: string;
+				tech_stack?: Record<string, Array<string>>;
 				title: string;
 				usage: string;
 			}
@@ -63,34 +72,56 @@ export class ReadmeResponseParserService implements IReadmeResponseParser {
 				logoUrl = parsed.logoUrl;
 			}
 
+			// Parse mermaid diagrams
+			const mermaidDiagrams: IMermaidDiagrams | undefined = parsed.mermaid_diagrams
+				? {
+						architecture: parsed.mermaid_diagrams.architecture,
+						dataFlow: parsed.mermaid_diagrams.data_flow,
+					}
+				: undefined;
+
 			// Build the final README content
 			const readmeContent: string = this.README_BUILDER.build({
+				acknowledgments: parsed.acknowledgments ?? "",
 				badges,
+				contributing: parsed.contributing ?? "",
 				faq: parsed.faq || "",
 				features: parsed.features || [],
+				highlights: parsed.highlights ?? [],
 				installation: parsed.installation || "",
 				license: parsed.license || "MIT",
 				logoType,
 				logoUrl,
 				longDescription: parsed.long_description,
+				mermaidDiagrams,
+				prerequisites: parsed.prerequisites ?? [],
 				repositoryInfo: context.repositoryInfo,
 				roadmap: parsed.roadmap || "",
 				shortDescription: parsed.short_description,
+				shouldIncludeContributors: context.shouldIncludeContributors,
+				shouldIncludeGithubBadges: context.shouldIncludeGithubBadges,
+				techStack: parsed.tech_stack ?? {},
 				title: parsed.title,
 				usage: parsed.usage || "",
 			});
 
 			return new Readme({
+				acknowledgments: parsed.acknowledgments ?? "",
 				badges,
 				content: readmeContent,
+				contributing: parsed.contributing ?? "",
 				faq: parsed.faq || "",
 				features: parsed.features || [],
+				highlights: parsed.highlights ?? [],
 				installation: parsed.installation || "",
 				license: parsed.license || "MIT",
 				logoUrl: parsed.logoUrl || "",
 				longDescription: parsed.long_description,
+				mermaidDiagrams,
+				prerequisites: parsed.prerequisites ?? [],
 				roadmap: parsed.roadmap || "",
 				shortDescription: parsed.short_description,
+				techStack: parsed.tech_stack ?? {},
 				title: parsed.title,
 				usage: parsed.usage || "",
 			});

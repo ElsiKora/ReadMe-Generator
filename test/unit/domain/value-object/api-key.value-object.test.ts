@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { ApiKey } from "../../../../src/domain/value-object/api-key.value-object.js";
+import { ApiKey } from "../../../../src/domain/value-object/api-key.value-object";
 
 describe("ApiKey Value Object", () => {
 	it("should create a valid API key", () => {
