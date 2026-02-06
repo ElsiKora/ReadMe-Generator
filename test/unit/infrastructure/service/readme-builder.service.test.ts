@@ -107,11 +107,10 @@ describe("ReadmeBuilder Service", () => {
 
 			const result = builder.build(data);
 
-			expect(result).toContain("> [!NOTE]");
-			expect(result).toContain("**Why Highlight Project?**");
-			expect(result).toContain("> - Blazing fast performance");
-			expect(result).toContain("> - Zero configuration");
-			expect(result).toContain("> - Type-safe APIs");
+			expect(result).toContain("## 💡 Highlights");
+			expect(result).toContain("- Blazing fast performance");
+			expect(result).toContain("- Zero configuration");
+			expect(result).toContain("- Type-safe APIs");
 		});
 
 		it("should include tech stack table when provided", () => {
@@ -193,7 +192,7 @@ describe("ReadmeBuilder Service", () => {
 			expect(result).toContain("- npm >= 9.0.0");
 		});
 
-		it("should include contributing section when provided", () => {
+		it("should include contributing section when flag is enabled", () => {
 			const data = {
 				title: "Contributing Project",
 				shortDescription: "Test contributing",
@@ -207,12 +206,35 @@ describe("ReadmeBuilder Service", () => {
 				license: "MIT",
 				repositoryInfo,
 				contributing: "Please read CONTRIBUTING.md before submitting a PR.",
+				shouldIncludeContributing: true,
 			};
 
 			const result = builder.build(data);
 
 			expect(result).toContain("## 🤝 Contributing");
 			expect(result).toContain("Please read CONTRIBUTING.md before submitting a PR.");
+		});
+
+		it("should NOT include contributing section when flag is disabled", () => {
+			const data = {
+				title: "No Contributing Project",
+				shortDescription: "Test no contributing",
+				longDescription: "Description",
+				badges: [],
+				features: [],
+				installation: "",
+				usage: "",
+				roadmap: "",
+				faq: "",
+				license: "MIT",
+				repositoryInfo,
+				contributing: "Please read CONTRIBUTING.md before submitting a PR.",
+				shouldIncludeContributing: false,
+			};
+
+			const result = builder.build(data);
+
+			expect(result).not.toContain("## 🤝 Contributing");
 		});
 
 		it("should include collapsible FAQ and roadmap sections", () => {
@@ -434,6 +456,7 @@ describe("ReadmeBuilder Service", () => {
 				techStack: { Language: ["TypeScript"] },
 				prerequisites: ["Node.js >= 18"],
 				contributing: "Contribute here",
+				shouldIncludeContributing: true,
 				acknowledgments: "Thanks",
 				mermaidDiagrams: { architecture: "flowchart TD\n  A-->B" },
 			};

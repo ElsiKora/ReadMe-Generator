@@ -98,6 +98,7 @@ export class ReadmeResponseParserService implements IReadmeResponseParser {
 				repositoryInfo: context.repositoryInfo,
 				roadmap: parsed.roadmap || "",
 				shortDescription: parsed.short_description,
+				shouldIncludeContributing: context.shouldIncludeContributing,
 				shouldIncludeContributors: context.shouldIncludeContributors,
 				shouldIncludeGithubBadges: context.shouldIncludeGithubBadges,
 				techStack: parsed.tech_stack ?? {},

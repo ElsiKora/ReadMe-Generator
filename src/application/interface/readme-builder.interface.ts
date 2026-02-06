@@ -28,6 +28,7 @@ export interface IReadmeBuildData {
 	repositoryInfo: RepositoryInfo;
 	roadmap: string;
 	shortDescription: string;
+	shouldIncludeContributing?: boolean;
 	shouldIncludeContributors?: boolean;
 	shouldIncludeGithubBadges?: boolean;
 	techStack?: Record<string, Array<string>>;

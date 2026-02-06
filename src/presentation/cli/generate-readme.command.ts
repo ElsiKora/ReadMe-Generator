@@ -240,6 +240,16 @@ export class GenerateReadmeCommand {
 				shouldIncludeContributors = await this.CLI_INTERFACE.confirm("Would you like to include a contributors section?");
 			}
 
+			// Ask about contributing guidelines section
+			let shouldIncludeContributing: boolean = false;
+
+			if (useExistingConfig && existingConfig.shouldIncludeContributing !== undefined) {
+				shouldIncludeContributing = existingConfig.shouldIncludeContributing;
+				this.CLI_INTERFACE.info(`📌 Using saved contributing guidelines preference: ${shouldIncludeContributing ? "enabled" : "disabled"}`);
+			} else {
+				shouldIncludeContributing = await this.CLI_INTERFACE.confirm("Would you like to include contributing guidelines?");
+			}
+
 			// Enrich repositoryInfo with all collected data
 			repositoryInfo = new RepositoryInfo({
 				codeStats: repositoryInfo.getCodeStats(),
@@ -274,6 +284,7 @@ export class GenerateReadmeCommand {
 				repositoryInfo,
 				scanDepth,
 				scannedFiles,
+				shouldIncludeContributing,
 				shouldIncludeContributors,
 				shouldIncludeGithubBadges,
 			};
@@ -296,6 +307,7 @@ export class GenerateReadmeCommand {
 					repositoryOwner: repositoryInfo.getOwner(),
 					repositorySource: repoSource as "local" | "remote",
 					scanDepth,
+					shouldIncludeContributing,
 					shouldIncludeContributors,
 					shouldIncludeGithubBadges,
 				};

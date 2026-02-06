@@ -78,7 +78,7 @@ export class ReadmeBuilder implements IReadmeBuilder {
 		const sections: Array<string> = [
 			this.buildHeader(logoUrl, data.title, data.shortDescription),
 			this.buildBadgesSection(badges, data.repositoryInfo, data.shouldIncludeGithubBadges),
-			...(data.highlights && data.highlights.length > 0 ? [this.buildHighlights(data.title, data.highlights)] : []),
+			...(data.highlights && data.highlights.length > 0 ? [this.buildHighlights(data.highlights)] : []),
 			this.buildTableOfContents(data),
 			`## 📖 Description\n${data.longDescription}`,
 			...(data.techStack && Object.keys(data.techStack).length > 0 ? [this.buildTechStack(data.techStack)] : []),
@@ -88,7 +88,7 @@ export class ReadmeBuilder implements IReadmeBuilder {
 			...(data.prerequisites && data.prerequisites.length > 0 ? [this.buildPrerequisites(data.prerequisites)] : []),
 			`## 🛠 Installation\n\`\`\`bash\n${cleanInstallation}\n\`\`\``,
 			`## 💡 Usage\n${data.usage}`,
-			...(data.contributing ? [`## 🤝 Contributing\n${data.contributing}`] : []),
+			...(data.shouldIncludeContributing && data.contributing ? [`## 🤝 Contributing\n${data.contributing}`] : []),
 			this.buildCollapsibleSection("🛣 Roadmap", data.roadmap),
 			this.buildCollapsibleSection("❓ FAQ", data.faq),
 			`## 🔒 License\nThis project is licensed under **${data.license}**.`,
@@ -110,15 +110,9 @@ export class ReadmeBuilder implements IReadmeBuilder {
 	private buildBadgesSection(badges: Array<Badge>, repositoryInfo: RepositoryInfo, shouldIncludeGithubBadges: boolean = false): string {
 		const parts: Array<string> = [];
 
-		// ElsiKora badge
-		const repositoryOwner: string | undefined = repositoryInfo.getOwner();
-		const isElsiKoraRepo: boolean = repositoryOwner?.toLowerCase() === "elsikora";
-
-		if (isElsiKoraRepo) {
-			parts.push(ELSIKORA_BADGE);
-		}
-
 		// Dynamic GitHub badges (only if user opted in)
+		const repositoryOwner: string | undefined = repositoryInfo.getOwner();
+
 		if (shouldIncludeGithubBadges && repositoryOwner) {
 			const repoName: string = repositoryInfo.getName();
 
@@ -139,9 +133,11 @@ export class ReadmeBuilder implements IReadmeBuilder {
 			parts.push(`<p align="center">\n    ${githubBadges.join("\n    ")}\n</p>`);
 		}
 
-		// Tech stack badges
+		// Tech stack badges + ElsiKora badge in the same row
+		const isElsiKoraRepo: boolean = repositoryOwner?.toLowerCase() === "elsikora";
+		const elsiKoraPrefix: string = isElsiKoraRepo ? ELSIKORA_BADGE + " " : "";
 		const badgeHtml: string = badges.map((badge: Badge) => `<img src="${badge.toUrl()}" alt="${badge.getName()}">`).join(" ");
-		parts.push(`<p align="center">\n    ${badgeHtml}\n</p>`);
+		parts.push(`<p align="center">\n    ${elsiKoraPrefix}${badgeHtml}\n</p>`);
 
 		return parts.join("\n\n");
 	}
@@ -208,15 +204,14 @@ export class ReadmeBuilder implements IReadmeBuilder {
 	}
 
 	/**
-	 * Build the highlights callout block
-	 * @param {string} title - Project title
+	 * Build the highlights section
 	 * @param {Array<string>} highlights - Highlight points
-	 * @returns {string} The highlights callout
+	 * @returns {string} The highlights section
 	 */
-	private buildHighlights(title: string, highlights: Array<string>): string {
-		const bulletPoints: string = highlights.map((h: string) => `> - ${h}`).join("\n");
+	private buildHighlights(highlights: Array<string>): string {
+		const bulletPoints: string = highlights.map((h: string) => `- ${h}`).join("\n");
 
-		return `> [!NOTE]\n> **Why ${title}?**\n>\n${bulletPoints}`;
+		return `## 💡 Highlights\n\n${bulletPoints}`;
 	}
 
 	/**
@@ -269,7 +264,7 @@ export class ReadmeBuilder implements IReadmeBuilder {
 
 		entries.push("- [Installation](#-installation)", "- [Usage](#-usage)");
 
-		if (data.contributing) {
+		if (data.shouldIncludeContributing && data.contributing) {
 			entries.push("- [Contributing](#-contributing)");
 		}
 
