@@ -59,7 +59,7 @@
 		"form-data": "^4.0.5",
 		"fs-extra": "^11.3.3",
 		"glob": "^13.0.1",
-		"https-proxy-agent": "^7.0.6",
+		"https-proxy-agent": "^9.0.0",
 		"ignore": "^7.0.5",
 		"javascript-stringify": "^2.1.0",
 		"openai": "^6.18.0",
